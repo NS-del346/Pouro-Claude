@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Pourō</title>
+<meta name="description" content="ハンドドリップ専用のブリューガイド＆タイマー。設定→確認→抽出→記録→振り返りを一気通貫で。">
+
+<!-- PWA -->
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#F5F0E8">
+
+<!-- iOS standalone -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Pourō">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+
+<!-- Favicons -->
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="180x180" href="./icons/favicon-180.png">
+
+<style>
+  /* ============ Shared tokens ============ */
+  :root {
+    --bg:        #F5F0E8;
+    --card:      #FFFDF8;
+    --ink:       #1C1612;
+    --sub:       #6F6258;
+    --border:    #E4D8CC;
+    --accent:    #B07D4F;
+    --cta-bg:    #1C1612;
+    --cta-ink:   #FFFDF8;
+    --font-serif: Georgia, 'Times New Roman', 'Hiragino Mincho ProN', serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Helvetica Neue', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ============ App shell ============ */
+  .app {
+    width: 100%;
+    max-width: 375px;
+    height: 100dvh;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+  }
+
+  /* Screens: only the active one shows */
+  .screen { display: none; flex: 1; min-height: 0; position: relative; flex-direction: column; background: var(--bg); }
+  .screen.is-active { display: flex; }
+
+  /* Shared ambient layers placed inside each screen */
+  .amb-glow {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(120% 60% at 50% -8%, rgba(255,250,240,0.9) 0%, rgba(245,240,232,0) 58%),
+      radial-gradient(80% 50% at 92% 4%, rgba(176,125,79,0.06) 0%, rgba(245,240,232,0) 52%);
+  }
+  .amb-line { position: absolute; z-index: 0; pointer-events: none; top: -20px; right: -40px; width: 260px; height: 280px; }
+  .amb-line path { fill: none; stroke: var(--accent); stroke-width: 1; opacity: 0.16; }
+
+  /* Shared content regions */
+  .fixed-content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .scroll-content { position: relative; z-index: 1; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .scroll-content::-webkit-scrollbar { display: none; }
+
+  /* Shared CTA */
+  .cta {
+    display: block; width: 100%;
+    background: var(--cta-bg); color: var(--cta-ink);
+    border: none; border-radius: 13px; padding: 14px;
+    font-family: var(--font-sans); font-size: 15.5px; font-weight: 500;
+    letter-spacing: 0.03em; cursor: pointer;
+    transition: opacity 130ms ease, transform 130ms ease;
+  }
+  .cta:hover { opacity: 0.92; }
+  .cta:active { transform: scale(0.99); }
+  .cta:disabled { opacity: 0.55; cursor: default; }
+
+  /* Shared back arrow */
+  .back {
+    width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+    background: none; border: none; cursor: pointer; color: var(--ink); margin-left: -8px;
+  }
+
+  /* Shared big page header (History / Settings) */
+  .page-title { font-size: 40px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); line-height: 1; }
+  .page-sub { font-size: 15px; color: var(--sub); margin-top: 11px; letter-spacing: 0.01em; }
+
+  /* ============ Tab bar (single, shared) ============ */
+  .tabbar {
+    position: relative; z-index: 2;
+    display: grid; grid-template-columns: repeat(3, 1fr); align-items: center;
+    padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--border);
+    background: rgba(245,240,232,0.78);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+  .tabbar.is-hidden { display: none; }
+  .tab {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    background: none; border: none; cursor: pointer; font-family: inherit;
+    color: var(--sub); opacity: 0.78;
+  }
+  .tab.is-active { color: var(--ink); opacity: 1; }
+  .tab svg { display: block; }
+  .tab svg * { stroke: currentColor; }
+  .tab span { font-size: 11px; letter-spacing: 0.04em; }
+  .tab .ico { width: 24px; height: 24px; }
+
+  /* ============ Icon assets (delivered PNG set; color variant per context) ============ */
+  /* Uses background-image with the brand color variant appropriate to each surface:
+     methods = dark (active card = amber), tabs = muted/active dark, on-dark button = white. */
+  .ico {
+    display: inline-block; width: 24px; height: 24px; flex: none;
+    background-position: center; background-repeat: no-repeat; background-size: contain;
+    background-image: var(--ico);
+  }
+  /* Method cards — dark (selected card shows amber) */
+  .ico-method-46     { --ico: url("assets/icons/128/method/icon-method-46-dark.png"); }
+  .ico-method-hybrid { --ico: url("assets/icons/128/method/icon-method-hybrid-dark.png"); }
+  .ico-method-neo    { --ico: url("assets/icons/128/method/icon-method-neo-dark.png"); }
+  .ico-method-ice    { --ico: url("assets/icons/128/method/icon-method-ice-dark.png"); }
+  /* Tabs — muted when inactive, dark when active */
+  .ico-ui-brew       { --ico: url("assets/icons/128/ui/icon-ui-brew-muted.png"); }
+  .ico-ui-history    { --ico: url("assets/icons/128/ui/icon-ui-history-muted.png"); }
+  .ico-ui-settings   { --ico: url("assets/icons/128/ui/icon-ui-settings-muted.png"); }
+  .tab.is-active .ico-ui-brew     { --ico: url("assets/icons/128/ui/icon-ui-brew-dark.png"); }
+  .tab.is-active .ico-ui-history  { --ico: url("assets/icons/128/ui/icon-ui-history-dark.png"); }
+  .tab.is-active .ico-ui-settings { --ico: url("assets/icons/128/ui/icon-ui-settings-dark.png"); }
+  /* New cup+steam Brew icon carries more internal padding than the history/
+     settings glyphs (~64% vs ~71% fill); nudge its render size so all three
+     tab icons read at the same optical size. The PNG itself is untouched. */
+  .tab .ico-ui-brew { background-size: 110%; }
+  /* Back arrow (Active Brew header) — dark */
+  .ico-ui-back       { --ico: url("assets/icons/128/ui/icon-ui-back-dark.png"); }
+
+  /* ===================================================================
+     1) BREW HOME
+     =================================================================== */
+  #screen-brewHome .content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; padding: 8px 22px 0; min-height: 0; }
+  #screen-brewHome .brand { text-align: center; padding-top: 10px; }
+  #screen-brewHome .logo { font-family: var(--font-serif); font-size: 46px; font-weight: 400; letter-spacing: 0.01em; line-height: 1; color: var(--ink); }
+  #screen-brewHome .tagline { font-family: var(--font-serif); font-style: italic; font-size: 16px; color: var(--sub); margin-top: 9px; }
+  #screen-brewHome .intro { font-size: 12.5px; color: var(--ink); opacity: 0.78; margin-top: 7px; letter-spacing: 0.08em; }
+  #screen-brewHome .section-label { font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: 0.06em; margin-top: 16px; margin-bottom: 9px; }
+  #screen-brewHome .method-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 11px; }
+  #screen-brewHome .method { position: relative; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 11px 13px 12px; cursor: pointer; text-align: left; font-family: inherit; transition: box-shadow 140ms ease, transform 140ms ease; box-shadow: 0 1px 2px rgba(28,22,18,0.03); }
+  #screen-brewHome .method:hover { box-shadow: 0 4px 12px rgba(28,22,18,0.07); }
+  #screen-brewHome .method.is-active { border-color: var(--accent); box-shadow: 0 6px 16px rgba(176,125,79,0.16); transform: translateY(-1px); }
+  #screen-brewHome .method .dot { position: absolute; top: 11px; right: 11px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); opacity: 0; }
+  #screen-brewHome .method.is-active .dot { opacity: 1; }
+  #screen-brewHome .method .icon { height: 28px; display: flex; align-items: center; }
+  #screen-brewHome .method .icon .ico { width: 27px; height: 27px; opacity: 0.9; }
+  #screen-brewHome .method.is-active .ico-method-46     { --ico: url("assets/icons/128/method/icon-method-46-active.png"); }
+  #screen-brewHome .method.is-active .ico-method-hybrid { --ico: url("assets/icons/128/method/icon-method-hybrid-active.png"); }
+  #screen-brewHome .method.is-active .ico-method-neo    { --ico: url("assets/icons/128/method/icon-method-neo-active.png"); }
+  #screen-brewHome .method.is-active .ico-method-ice    { --ico: url("assets/icons/128/method/icon-method-ice-active.png"); }
+  #screen-brewHome .method.is-active .icon .ico { opacity: 1; }
+  #screen-brewHome .method .icon svg { display: block; }
+  #screen-brewHome .method .icon svg path, #screen-brewHome .method .icon svg circle, #screen-brewHome .method .icon svg line, #screen-brewHome .method .icon svg polyline { stroke: var(--ink); opacity: 0.82; }
+  #screen-brewHome .method-name { font-size: 18px; font-weight: 600; color: var(--ink); margin-top: 10px; line-height: 1.15; }
+  #screen-brewHome .method[data-id="neo"] .method-name { font-size: 16px; }
+  #screen-brewHome .method-sub { font-size: 12.5px; color: var(--sub); margin-top: 4px; }
+  #screen-brewHome .desc { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px 17px 15px; margin-top: 13px; box-shadow: 0 4px 18px rgba(28,22,18,0.05); }
+  #screen-brewHome .desc-title { font-family: var(--font-serif); font-size: 20px; font-weight: 400; color: var(--ink); }
+  #screen-brewHome .desc-body { font-size: 13px; line-height: 1.65; color: var(--ink); opacity: 0.86; margin-top: 7px; text-wrap: pretty; }
+  #screen-brewHome .cta { margin-top: 13px; letter-spacing: 0.06em; }
+
+  /* ===================================================================
+     2) RECIPE SETUP
+     =================================================================== */
+  #screen-recipeSetup .header { position: relative; z-index: 1; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; padding: 7px 18px 2px; }
+  #screen-recipeSetup .header-titles { text-align: center; }
+  #screen-recipeSetup .header-title { font-size: 18px; font-weight: 600; color: var(--ink); }
+  #screen-recipeSetup .header-sub { font-size: 12.5px; color: var(--sub); margin-top: 1px; }
+  #screen-recipeSetup .content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; padding: 2px 18px 0; min-height: 0; gap: 8px; }
+  #screen-recipeSetup .section-label { font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: 0.05em; margin-bottom: 7px; }
+  #screen-recipeSetup .pill-row { display: grid; gap: 8px; }
+  #screen-recipeSetup .pill-row.dose { grid-template-columns: repeat(6, 1fr); }
+  #screen-recipeSetup .pill-row.triad { grid-template-columns: repeat(3, 1fr); }
+  #screen-recipeSetup .pill { background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 9px 0; font-family: inherit; font-size: 14px; font-weight: 500; color: var(--ink); cursor: pointer; text-align: center; transition: box-shadow 130ms ease; box-shadow: 0 1px 2px rgba(28,22,18,0.03); }
+  #screen-recipeSetup .pill.dose-pill { font-size: 13px; padding: 7px 0; }
+  #screen-recipeSetup .pill:hover { box-shadow: 0 3px 8px rgba(28,22,18,0.06); }
+  #screen-recipeSetup .pill.is-active { border-color: var(--accent); border-width: 1.5px; box-shadow: 0 2px 8px rgba(176,125,79,0.14); }
+  #screen-recipeSetup .sub-label { font-size: 12.5px; color: var(--sub); margin-bottom: 5px; }
+  #screen-recipeSetup .field + .field { margin-top: 7px; }
+  #screen-recipeSetup .stepper { display: grid; grid-template-columns: 56px 1fr 56px; align-items: stretch; background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 2px rgba(28,22,18,0.03); }
+  #screen-recipeSetup .step-btn { background: none; border: none; cursor: pointer; font-size: 22px; color: var(--ink); display: flex; align-items: center; justify-content: center; padding: 8px 0; transition: background 120ms ease; }
+  #screen-recipeSetup .step-btn:hover { background: rgba(176,125,79,0.06); }
+  #screen-recipeSetup .step-btn:disabled { color: var(--border); cursor: default; }
+  #screen-recipeSetup .step-btn:disabled:hover { background: none; }
+  #screen-recipeSetup .step-btn.minus { border-right: 1px solid var(--border); }
+  #screen-recipeSetup .step-btn.plus { border-left: 1px solid var(--border); }
+  #screen-recipeSetup .step-value { display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  #screen-recipeSetup .summary { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 10px 16px 9px; box-shadow: 0 4px 16px rgba(28,22,18,0.05); }
+  #screen-recipeSetup .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 8px; }
+  #screen-recipeSetup .summary-grid2 { display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 8px; max-width: 66%; margin: 9px auto 0; }
+  #screen-recipeSetup .stat { text-align: center; }
+  #screen-recipeSetup .stat-label { font-size: 11px; color: var(--sub); letter-spacing: 0.06em; }
+  #screen-recipeSetup .stat-value { font-size: 17px; font-weight: 600; color: var(--ink); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  #screen-recipeSetup .summary-note { margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--border); font-size: 12px; line-height: 1.55; color: var(--sub); text-align: center; text-wrap: pretty; }
+  #screen-recipeSetup .cta-wrap { margin-top: auto; padding-bottom: 6px; }
+  #screen-recipeSetup .cta { border-radius: 13px; padding: 12px; font-size: 15.5px; }
+  #screen-recipeSetup .section.is-hidden { display: none; }
+
+  /* ===================================================================
+     3) PREVIEW
+     =================================================================== */
+  #screen-preview .header { position: relative; z-index: 1; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; padding: 8px 18px 4px; }
+  #screen-preview .header-titles { text-align: center; }
+  #screen-preview .header-title { font-size: 18px; font-weight: 600; color: var(--ink); }
+  #screen-preview .header-sub { font-size: 12.5px; color: var(--sub); margin-top: 1px; }
+  #screen-preview .content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; padding: 4px 18px calc(14px + env(safe-area-inset-bottom, 0px)); min-height: 0; gap: 9px; overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  #screen-preview .content::-webkit-scrollbar { display: none; }
+  #screen-preview .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 4px 16px rgba(28,22,18,0.05); }
+  #screen-preview .summary { padding: 13px 16px 12px; }
+  #screen-preview .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
+  #screen-preview .summary-grid2 { display: grid; grid-template-columns: repeat(2, 1fr); max-width: 70%; margin: 11px auto 0; }
+  #screen-preview .stat { text-align: center; padding: 0 4px; }
+  #screen-preview .summary-grid .stat + .stat, #screen-preview .summary-grid2 .stat + .stat { border-left: 1px solid var(--border); }
+  #screen-preview .stat-label { font-size: 11px; color: var(--sub); letter-spacing: 0.05em; }
+  #screen-preview .stat-value { font-size: 17px; font-weight: 600; color: var(--ink); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  #screen-preview .summary-note { margin-top: 11px; padding-top: 7px; border-top: 1px solid var(--border); font-size: 12px; line-height: 1.55; color: var(--sub); text-align: center; text-wrap: pretty; }
+  #screen-preview .timeline-card { padding: 14px 18px 12px; }
+  #screen-preview .timeline-title { font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: 0.06em; text-align: center; margin-bottom: 8px; }
+  #screen-preview .tl-step { display: grid; grid-template-columns: 22px 1fr auto auto; align-items: center; column-gap: 12px; min-height: 33px; }
+  #screen-preview .tl-marker { position: relative; align-self: stretch; }
+  #screen-preview .tl-marker::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1.5px; transform: translateX(-50%); background: rgba(176,125,79,0.35); }
+  #screen-preview .tl-step:first-child .tl-marker::before { top: 50%; }
+  #screen-preview .tl-step:last-child .tl-marker::before { bottom: 50%; }
+  #screen-preview .tl-marker::after { content: ""; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); transform: translate(-50%, -50%); }
+  #screen-preview .tl-label { font-size: 14px; color: var(--ink); }
+  #screen-preview .tl-time { font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; min-width: 42px; text-align: right; }
+  #screen-preview .tl-amount { font-size: 14px; color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; min-width: 38px; text-align: right; }
+  #screen-preview .tl-step.is-drawdown .tl-label, #screen-preview .tl-step.is-drawdown .tl-time { color: var(--sub); }
+  #screen-preview .tl-step.is-drawdown .tl-marker::after { background: var(--sub); opacity: 0.55; }
+  #screen-preview .rinse { padding: 11px 16px; }
+  #screen-preview .rinse p { font-size: 12.5px; line-height: 1.55; color: var(--sub); text-wrap: pretty; }
+  #screen-preview .cta-wrap { margin-top: auto; padding-top: 3px; padding-bottom: 6px; flex-shrink: 0; }
+  #screen-preview .cta { border-radius: 13px; padding: 14px; letter-spacing: 0.04em; }
+
+  /* ===================================================================
+     4) ACTIVE BREW
+     =================================================================== */
+  #screen-activeBrew .amb-line { inset: 0; width: 100%; height: 100%; top: 0; right: 0; }
+  #screen-activeBrew .amb-line path { opacity: 0.1; }
+  #screen-activeBrew .header { position: relative; z-index: 1; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; padding: 12px 18px 6px; }
+  #screen-activeBrew .header-titles { text-align: center; }
+  #screen-activeBrew .header-title { font-size: 18px; font-weight: 600; color: var(--ink); }
+  #screen-activeBrew .header-sub { font-size: 13px; color: var(--sub); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  #screen-activeBrew .content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; align-items: center; padding: 6px 22px 0; min-height: 0; }
+  #screen-activeBrew .ring-wrap { position: relative; width: 208px; height: 208px; margin-top: 14px; }
+  #screen-activeBrew .ring-wrap svg { display: block; width: 100%; height: 100%; transform: rotate(-90deg); }
+  #screen-activeBrew .ring-bg { fill: none; stroke: var(--border); stroke-width: 4; }
+  #screen-activeBrew .ring-fg { fill: none; stroke: var(--accent); stroke-width: 4.5; stroke-linecap: round; }
+  #screen-activeBrew .ring-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #screen-activeBrew .ring-time { font-size: 52px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1; }
+  #screen-activeBrew .pour-main { font-size: 54px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); margin-top: 22px; line-height: 1; font-variant-numeric: tabular-nums; }
+  #screen-activeBrew .pour-total { font-size: 19px; color: var(--sub); margin-top: 10px; font-variant-numeric: tabular-nums; }
+  #screen-activeBrew .instruction { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 13px 16px; margin-top: 20px; box-shadow: 0 2px 10px rgba(28,22,18,0.04); }
+  #screen-activeBrew .instruction p { font-size: 14px; line-height: 1.6; color: var(--ink); text-wrap: pretty; }
+  #screen-activeBrew .next-preview { font-size: 13.5px; color: var(--sub); margin-top: 16px; font-variant-numeric: tabular-nums; }
+  #screen-activeBrew .controls { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 12px; padding: 12px 22px calc(16px + env(safe-area-inset-bottom, 0px)); }
+  #screen-activeBrew .ctrl { font-family: var(--font-sans); font-size: 15px; font-weight: 500; letter-spacing: 0.02em; border-radius: 999px; padding: 14px 0; cursor: pointer; transition: opacity 130ms ease, transform 130ms ease, background 130ms ease; }
+  #screen-activeBrew .ctrl.outline { background: var(--card); border: 1px solid var(--border); color: var(--ink); }
+  #screen-activeBrew .ctrl.outline:hover { background: #FBF6EE; }
+  #screen-activeBrew .ctrl.primary { background: var(--cta-bg); border: 1px solid var(--cta-bg); color: var(--cta-ink); }
+  #screen-activeBrew .ctrl.primary:hover { opacity: 0.92; }
+  #screen-activeBrew .ctrl:active { transform: scale(0.98); }
+  #screen-activeBrew .ctrl { display: flex; align-items: center; justify-content: center; gap: 7px; }
+  #screen-activeBrew #abBtnBack::before,
+  #screen-activeBrew #abBtnPause::before,
+  #screen-activeBrew #abBtnNext::after {
+    content: ""; width: 15px; height: 15px; flex: none;
+    background-position: center; background-repeat: no-repeat; background-size: contain;
+  }
+  #screen-activeBrew #abBtnBack::before  { background-image: url("assets/icons/128/ui/icon-ui-back-dark.png"); }
+  #screen-activeBrew #abBtnPause::before { background-image: url("assets/icons/128/ui/icon-ui-pause-white.png"); }
+  #screen-activeBrew #abBtnNext::after   { background-image: url("assets/icons/128/ui/icon-ui-next-dark.png"); }
+
+  /* ===================================================================
+     5) BREW LOG
+     =================================================================== */
+  #screen-brewLog .amb-line { top: 0; right: 0; width: 220px; height: 100%; opacity: 0.5; }
+  #screen-brewLog .scroll-content { padding: 14px 22px 0; }
+  #screen-brewLog .header-title { font-family: var(--font-serif); font-size: 32px; font-weight: 400; color: var(--ink); margin-top: 8px; }
+  #screen-brewLog .header-sub { font-size: 14px; color: var(--sub); margin-top: 3px; }
+  #screen-brewLog .section { margin-top: 22px; }
+  #screen-brewLog .section-label { font-size: 15px; font-weight: 600; color: var(--ink); letter-spacing: 0.04em; margin-bottom: 11px; }
+  #screen-brewLog .hint { font-size: 12px; color: var(--sub); margin-top: 9px; }
+  #screen-brewLog .summary { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px 13px; margin-top: 18px; box-shadow: 0 3px 12px rgba(28,22,18,0.04); }
+  #screen-brewLog .summary-row { display: grid; align-items: baseline; }
+  #screen-brewLog .summary-row.three { grid-template-columns: repeat(3, 1fr); }
+  #screen-brewLog .summary-row.two { grid-template-columns: repeat(3, 1fr); }
+  #screen-brewLog .summary-row + .summary-row { margin-top: 9px; }
+  #screen-brewLog .s-item { font-size: 13.5px; color: var(--ink); }
+  #screen-brewLog .s-item .s-key { color: var(--sub); }
+  #screen-brewLog .summary-note { margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--sub); line-height: 1.5; text-wrap: pretty; }
+  #screen-brewLog .rating { display: flex; gap: 14px; }
+  #screen-brewLog .rdot { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--card); cursor: pointer; padding: 0; transition: border-color 120ms ease, background 120ms ease; }
+  #screen-brewLog .rdot.filled { border-color: var(--accent); background: var(--accent); }
+  #screen-brewLog .tags { display: flex; flex-wrap: wrap; gap: 9px; }
+  #screen-brewLog .tag { background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 9px 16px; font-family: inherit; font-size: 13.5px; color: var(--ink); cursor: pointer; transition: border-color 120ms ease, color 120ms ease, opacity 120ms ease; }
+  #screen-brewLog .tag.selected { border-color: var(--accent); border-width: 1.5px; color: var(--accent); }
+  #screen-brewLog .tag.disabled { opacity: 0.4; cursor: default; }
+  #screen-brewLog .note-area { width: 100%; min-height: 92px; resize: vertical; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 13px 14px; font-family: var(--font-sans); font-size: 14px; line-height: 1.6; color: var(--ink); }
+  #screen-brewLog .note-area::placeholder { color: var(--sub); opacity: 0.7; }
+  #screen-brewLog .note-area:focus { outline: none; border-color: var(--accent); }
+  #screen-brewLog .equipment { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 4px 14px; }
+  #screen-brewLog .eq-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; }
+  #screen-brewLog .eq-row + .eq-row { border-top: 1px solid var(--border); }
+  #screen-brewLog .eq-key { flex: 0 0 84px; font-size: 13px; color: var(--sub); }
+  #screen-brewLog .eq-input { flex: 1; background: none; border: none; font-family: var(--font-sans); font-size: 14px; color: var(--ink); padding: 2px 0; min-width: 0; }
+  #screen-brewLog .eq-input:focus { outline: none; }
+  #screen-brewLog .save-footer { position: relative; z-index: 2; padding: 12px 22px calc(14px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(to top, var(--bg) 70%, rgba(245,240,232,0)); }
+  #screen-brewLog .cta { border-radius: 14px; padding: 16px; font-size: 16px; letter-spacing: 0.04em; }
+  #screen-brewLog .cta-hint { text-align: center; font-size: 12px; color: var(--sub); opacity: 0.85; margin-top: 10px; }
+  #screen-brewLog .cta-hint.saved { color: var(--accent); opacity: 1; }
+
+  /* ===================================================================
+     6) HISTORY
+     =================================================================== */
+  #screen-history .amb-glow { height: 320px; inset: auto; top: 0; left: 0; right: 0; }
+  #screen-history .amb-line { top: 0; right: 0; width: 200px; height: 100%; }
+  #screen-history .amb-line path { opacity: 0.12; }
+  #screen-history .scroll-content { padding: 30px 22px 26px; }
+  #screen-history .summary { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 17px 8px; margin-top: 22px; box-shadow: 0 2px 10px rgba(28,22,18,0.04); display: grid; grid-template-columns: 1fr 1.45fr 1fr; }
+  #screen-history .sum-item { text-align: center; padding: 0 6px; }
+  #screen-history .sum-item + .sum-item { border-left: 1px solid var(--border); }
+  #screen-history .sum-key { font-size: 12.5px; color: var(--sub); }
+  #screen-history .sum-val { font-size: 21px; font-weight: 600; color: var(--ink); margin-top: 6px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #screen-history .sum-val.method { font-size: 17px; }
+  #screen-history .log-list { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
+  #screen-history .log-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 17px 19px 18px; cursor: pointer; box-shadow: 0 2px 8px rgba(28,22,18,0.04); transition: box-shadow 130ms ease, transform 130ms ease; }
+  #screen-history .log-card:hover { box-shadow: 0 6px 16px rgba(28,22,18,0.08); transform: translateY(-1px); }
+  #screen-history .log-card.recent { border-color: rgba(176,125,79,0.4); box-shadow: 0 5px 16px rgba(176,125,79,0.1); }
+  #screen-history .card-date { font-size: 13px; color: var(--sub); font-variant-numeric: tabular-nums; }
+  #screen-history .card-line { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 5px; }
+  #screen-history .card-method { font-size: 21px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+  #screen-history .rating-row { display: flex; gap: 7px; flex-shrink: 0; }
+  #screen-history .rdot { width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid var(--border); background: transparent; }
+  #screen-history .rdot.on { background: var(--accent); border-color: var(--accent); }
+  #screen-history .card-recipe { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 9px; }
+  #screen-history .recipe-summary { font-size: 16px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  #screen-history .card-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+  #screen-history .mini-tag { font-size: 13px; color: var(--accent); border: 1px solid rgba(176,125,79,0.5); border-radius: 999px; padding: 4px 13px; white-space: nowrap; }
+  #screen-history .card-note { font-size: 15px; color: var(--ink); line-height: 1.5; margin-top: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-wrap: pretty; }
+  #screen-history .card-equip { font-size: 13px; color: var(--sub); margin-top: 13px; line-height: 1.4; text-wrap: pretty; }
+  #screen-history .empty { display: none; background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 44px 28px; margin-top: 18px; text-align: center; box-shadow: 0 2px 8px rgba(28,22,18,0.04); }
+  #screen-history .empty.show { display: block; }
+  #screen-history .empty-mark { width: 52px; height: 52px; border-radius: 50%; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--accent); margin: 0 auto 16px; }
+  #screen-history .empty h2 { font-size: 18px; font-weight: 600; color: var(--ink); }
+  #screen-history .empty p { font-size: 14px; color: var(--sub); margin-top: 9px; line-height: 1.6; }
+
+  /* ===================================================================
+     7) SETTINGS
+     =================================================================== */
+  #screen-settings .amb-glow { height: 320px; inset: auto; top: 0; left: 0; right: 0; }
+  #screen-settings .amb-line { top: 0; right: -40px; width: 240px; height: 100%; }
+  #screen-settings .amb-line path { opacity: 0.13; }
+  #screen-settings .scroll-content { padding: 30px 22px 26px; }
+  #screen-settings .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 17px 19px 18px; margin-top: 18px; box-shadow: 0 2px 8px rgba(28,22,18,0.04); }
+  #screen-settings .card-title { font-size: 19px; font-weight: 600; color: var(--ink); margin-bottom: 13px; }
+  #screen-settings .card-note { font-size: 12.5px; color: var(--sub); line-height: 1.5; margin-top: 13px; text-wrap: pretty; }
+  #screen-settings .row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 7px 0; }
+  #screen-settings .row .k { font-size: 15px; color: var(--ink); }
+  #screen-settings .row .v { font-size: 15px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  #screen-settings .row .v.muted { color: var(--sub); }
+  #screen-settings .row-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding: 7px 0; }
+  #screen-settings .row-pair .cell { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  #screen-settings .row-pair .cell .k { font-size: 15px; color: var(--ink); }
+  #screen-settings .row-pair .cell .v { font-size: 15px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  #screen-settings .state { font-size: 15px; }
+  #screen-settings .state.on { color: var(--ink); }
+  #screen-settings .state.off { color: var(--sub); }
+  #screen-settings .clear-row { display: flex; align-items: center; padding: 9px 0 4px; cursor: pointer; background: none; border: none; font-family: inherit; width: 100%; text-align: left; }
+  #screen-settings .clear-row .k { font-size: 15px; color: var(--accent); }
+  #screen-settings .clear-row:hover .k { opacity: 0.78; }
+  #screen-settings .about-logo { font-family: var(--font-serif); font-size: 38px; font-weight: 400; color: var(--ink); line-height: 1; margin: 4px 0 9px; }
+  #screen-settings .about-tag { font-family: var(--font-serif); font-style: italic; font-size: 15px; color: var(--ink); opacity: 0.85; margin-bottom: 12px; }
+  #screen-settings .about-line { font-size: 13.5px; color: var(--sub); line-height: 1.65; }
+  #screen-settings .about-line.ja { margin-top: 2px; }
+</style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- ===================== 1) BREW HOME ===================== -->
+    <section class="screen" id="screen-brewHome" data-screen-label="Brew Home">
+      <div class="amb-glow"></div>
+      <svg class="amb-line" viewBox="0 0 260 280" aria-hidden="true"><path d="M40 -10 C 150 60, 250 120, 210 240 C 190 295, 120 320, 70 330"/><path d="M120 -20 C 200 40, 270 110, 240 210"/></svg>
+      <div class="content">
+        <header class="brand">
+          <div class="logo">pourō</div>
+          <div class="tagline">Pour slowly. Brew deeply.</div>
+          <div class="intro">今日の抽出を整える</div>
+        </header>
+        <div class="section-label">抽出方法</div>
+        <div class="method-grid" id="bhGrid"></div>
+        <div class="desc">
+          <div class="desc-title" id="bhDescTitle"></div>
+          <p class="desc-body" id="bhDescBody"></p>
+          <button class="cta" id="bhCta">レシピ設定へ</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 2) RECIPE SETUP ===================== -->
+    <section class="screen" id="screen-recipeSetup" data-screen-label="Recipe Setup">
+      <div class="amb-glow"></div>
+      <svg class="amb-line" viewBox="0 0 260 280" aria-hidden="true"><path d="M40 -10 C 150 60, 250 120, 210 240"/></svg>
+      <header class="header">
+        <button class="back" id="rsBack" aria-label="戻る"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12l7 7"/></svg></button>
+        <div class="header-titles"><div class="header-title">Recipe Setup</div><div class="header-sub" id="rsMethod">4:6 Method</div></div>
+        <div></div>
+      </header>
+      <div class="content">
+        <section><div class="section-label">豆量</div><div class="pill-row dose" id="rsDose"></div></section>
+        <section>
+          <div class="section-label">比率</div>
+          <div class="stepper">
+            <button class="step-btn minus" id="rsMinus" aria-label="比率を下げる">−</button>
+            <div class="step-value" id="rsRatio">1:15</div>
+            <button class="step-btn plus" id="rsPlus" aria-label="比率を上げる">＋</button>
+          </div>
+        </section>
+        <section id="rs46" class="section">
+          <div class="section-label">4:6設定</div>
+          <div class="field"><div class="sub-label">味の方向</div><div class="pill-row triad" id="rsFlavor"></div></div>
+          <div class="field"><div class="sub-label">濃度</div><div class="pill-row triad" id="rsStrength"></div></div>
+        </section>
+        <section class="summary">
+          <div class="summary-grid">
+            <div class="stat"><div class="stat-label">Coffee</div><div class="stat-value" id="rsCoffee">18g</div></div>
+            <div class="stat"><div class="stat-label">Water</div><div class="stat-value" id="rsWater">270g</div></div>
+            <div class="stat"><div class="stat-label">Pours</div><div class="stat-value" id="rsPours">2 + 2</div></div>
+          </div>
+          <div class="summary-grid2">
+            <div class="stat"><div class="stat-label">Interval</div><div class="stat-value" id="rsInterval">45s</div></div>
+            <div class="stat"><div class="stat-label">Drawdown</div><div class="stat-value" id="rsDraw">3:30</div></div>
+          </div>
+          <div class="summary-note" id="rsNote">前半2投で味を整え、後半2投で濃度を調整。</div>
+        </section>
+        <div class="cta-wrap"><button class="cta" id="rsCta">レシピを確認する</button></div>
+      </div>
+    </section>
+
+    <!-- ===================== 3) PREVIEW ===================== -->
+    <section class="screen" id="screen-preview" data-screen-label="Preview">
+      <div class="amb-glow"></div>
+      <svg class="amb-line" viewBox="0 0 260 280" aria-hidden="true"><path d="M40 -10 C 150 60, 250 120, 210 240"/></svg>
+      <header class="header">
+        <button class="back" id="pvBack" aria-label="戻る"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12l7 7"/></svg></button>
+        <div class="header-titles"><div class="header-title">Preview</div><div class="header-sub" id="pvMethod">4:6 Method</div></div>
+        <div></div>
+      </header>
+      <div class="content">
+        <section class="card summary">
+          <div class="summary-grid">
+            <div class="stat"><div class="stat-label">Coffee</div><div class="stat-value" id="pvCoffee"></div></div>
+            <div class="stat"><div class="stat-label">Water</div><div class="stat-value" id="pvWater"></div></div>
+            <div class="stat"><div class="stat-label">Ratio</div><div class="stat-value" id="pvRatio"></div></div>
+          </div>
+          <div class="summary-grid2">
+            <div class="stat"><div class="stat-label">Pours</div><div class="stat-value" id="pvPours"></div></div>
+            <div class="stat"><div class="stat-label">Drawdown</div><div class="stat-value" id="pvDraw"></div></div>
+          </div>
+          <div class="summary-note" id="pvNote"></div>
+        </section>
+        <section class="card timeline-card">
+          <div class="timeline-title">注湯タイムライン</div>
+          <div class="timeline" id="pvTimeline"></div>
+        </section>
+        <section class="card rinse"><p id="pvRinse"></p></section>
+        <div class="cta-wrap"><button class="cta" id="pvCta">抽出を開始する</button></div>
+      </div>
+    </section>
+
+    <!-- ===================== 4) ACTIVE BREW ===================== -->
+    <section class="screen" id="screen-activeBrew" data-screen-label="Active Brew">
+      <svg class="amb-line" viewBox="0 0 375 667" aria-hidden="true" preserveAspectRatio="xMidYMid slice"><path d="M250 -20 C 360 120, 300 260, 410 360"/><path d="M-30 120 C 140 260, 60 440, 220 560 C 300 620, 360 600, 420 660"/><path d="M340 40 C 300 110, 360 160, 330 230"/></svg>
+      <header class="header">
+        <button class="back" id="abBack" aria-label="Previewへ戻る"><span class="ico ico-ui-back" style="width:22px;height:22px"></span></button>
+        <div class="header-titles"><div class="header-title" id="abMethod">4:6 Method</div><div class="header-sub" id="abStep">3投目 / 4</div></div>
+        <div></div>
+      </header>
+      <div class="content">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 208 208"><circle class="ring-bg" cx="104" cy="104" r="96"></circle><circle class="ring-fg" id="abRing" cx="104" cy="104" r="96"></circle></svg>
+          <div class="ring-center"><div class="ring-time" id="abTime">00:00</div></div>
+        </div>
+        <div class="pour-main" id="abPour">Pour 0g</div>
+        <div class="pour-total" id="abTotal">Total 0g / 0g</div>
+        <div class="instruction"><p id="abInstruction"></p></div>
+        <div class="next-preview" id="abNext"></div>
+      </div>
+      <div class="controls">
+        <button class="ctrl outline" id="abBtnBack">Back</button>
+        <button class="ctrl primary" id="abBtnPause">Pause</button>
+        <button class="ctrl outline" id="abBtnNext">Next</button>
+      </div>
+    </section>
+
+    <!-- ===================== 5) BREW LOG ===================== -->
+    <section class="screen" id="screen-brewLog" data-screen-label="Brew Log">
+      <svg class="amb-line" viewBox="0 0 220 667" aria-hidden="true" preserveAspectRatio="xMidYMid slice"><path d="M180 -20 C 120 160, 200 320, 150 500 C 130 580, 170 620, 140 700"/><path d="M250 40 C 200 180, 260 340, 210 520"/></svg>
+      <div class="scroll-content">
+        <header>
+          <button class="back" id="blBack" aria-label="Active Brewへ戻る"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12l7 7"/></svg></button>
+          <div class="header-title">Brew Log</div>
+          <div class="header-sub" id="blMethod">4:6 Method</div>
+        </header>
+        <section class="summary">
+          <div class="summary-row three">
+            <div class="s-item"><span class="s-key">Coffee</span> <span id="blCoffee"></span></div>
+            <div class="s-item"><span class="s-key">Water</span> <span id="blWater"></span></div>
+            <div class="s-item"><span class="s-key">Ratio</span> <span id="blRatio"></span></div>
+          </div>
+          <div class="summary-row two">
+            <div class="s-item"><span class="s-key">Pours</span> <span id="blPours"></span></div>
+            <div class="s-item" style="grid-column: span 2;"><span class="s-key">Drawdown</span> <span id="blDraw"></span></div>
+          </div>
+          <div class="summary-note" id="blNote"></div>
+        </section>
+        <section class="section"><div class="section-label">評価</div><div class="rating" id="blRating"></div></section>
+        <section class="section"><div class="section-label">味の印象</div><div class="tags" id="blTags"></div><div class="hint">味タグは3つまで</div></section>
+        <section class="section"><div class="section-label">次回メモ</div><textarea class="note-area" id="blNoteInput" placeholder="次回はどこを変えるかメモする"></textarea></section>
+        <section class="section">
+          <div class="section-label">器具情報</div>
+          <div class="equipment">
+            <div class="eq-row"><label class="eq-key" for="blBean">豆 / 挽き目</label><input class="eq-input" id="blBean" type="text" autocomplete="off"></div>
+            <div class="eq-row"><label class="eq-key" for="blDripper">ドリッパー</label><input class="eq-input" id="blDripper" type="text" autocomplete="off"></div>
+            <div class="eq-row"><label class="eq-key" for="blTemp">湯温</label><input class="eq-input" id="blTemp" type="text" autocomplete="off"></div>
+          </div>
+        </section>
+        <div style="height: 8px;"></div>
+      </div>
+      <div class="save-footer">
+        <button class="cta" id="blSave">記録を保存する</button>
+        <div class="cta-hint" id="blHint">保存すると履歴に追加されます</div>
+      </div>
+    </section>
+
+    <!-- ===================== 6) HISTORY ===================== -->
+    <section class="screen" id="screen-history" data-screen-label="History">
+      <div class="amb-glow"></div>
+      <svg class="amb-line" viewBox="0 0 200 667" aria-hidden="true" preserveAspectRatio="xMidYMid slice"><path d="M160 -20 C 110 160, 180 320, 130 500 C 110 580, 150 620, 120 700"/><path d="M220 40 C 180 180, 230 340, 190 520"/></svg>
+      <div class="scroll-content">
+        <header><h1 class="page-title">History</h1><p class="page-sub">前回の一杯から、次の調整へ</p></header>
+        <section class="summary" id="hsSummary">
+          <div class="sum-item"><div class="sum-key">Total logs</div><div class="sum-val" id="hsTotal">0</div></div>
+          <div class="sum-item"><div class="sum-key">Last brew</div><div class="sum-val method" id="hsLast">—</div></div>
+          <div class="sum-item"><div class="sum-key">Avg rating</div><div class="sum-val" id="hsAvg">—</div></div>
+        </section>
+        <div class="log-list" id="hsList"></div>
+        <div class="empty" id="hsEmpty">
+          <div class="empty-mark"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h11v4a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V9Z"/><path d="M16 10h2.2a2 2 0 0 1 0 4H16"/><path d="M8 6c0-1 .8-1.4.8-2.4M11.4 6c0-1 .8-1.4.8-2.4"/></svg></div>
+          <h2>まだ記録がありません</h2>
+          <p>抽出を保存すると履歴に追加されます。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 7) SETTINGS ===================== -->
+    <section class="screen" id="screen-settings" data-screen-label="Settings">
+      <div class="amb-glow"></div>
+      <svg class="amb-line" viewBox="0 0 240 667" aria-hidden="true" preserveAspectRatio="xMidYMid slice"><path d="M180 -20 C 120 160, 200 320, 150 500 C 130 580, 175 620, 150 700"/><path d="M220 30 C 175 180, 235 340, 195 520"/></svg>
+      <div class="scroll-content">
+        <header><h1 class="page-title">Settings</h1><p class="page-sub">抽出の基準を、静かに整える</p></header>
+        <section class="card">
+          <div class="card-title">Default brew</div>
+          <div class="row"><span class="k">Method</span><span class="v" id="stMethod">4:6 Method</span></div>
+          <div class="row-pair">
+            <div class="cell"><span class="k">Coffee</span><span class="v" id="stDose">18g</span></div>
+            <div class="cell"><span class="k">Ratio</span><span class="v" id="stRatio">1:15</span></div>
+          </div>
+          <div class="row-pair">
+            <div class="cell"><span class="k">Flavor</span><span class="v" id="stFlavor">ベーシック</span></div>
+            <div class="cell"><span class="k">Strength</span><span class="v" id="stStrength">標準</span></div>
+          </div>
+          <div class="card-note">新しい抽出を始めるときの初期値です</div>
+        </section>
+        <section class="card">
+          <div class="card-title">Brew assist</div>
+          <div class="row"><span class="k">Keep screen awake</span><span class="state" id="stScreen">On</span></div>
+          <div class="row"><span class="k">Sound cues</span><span class="state" id="stSound">Off</span></div>
+          <div class="row"><span class="k">Haptic cues</span><span class="state" id="stHaptic">Off</span></div>
+        </section>
+        <section class="card">
+          <div class="card-title">Data</div>
+          <div class="row"><span class="k">Storage</span><span class="v">This device only</span></div>
+          <div class="row"><span class="k">History logs</span><span class="v" id="stCount">0</span></div>
+          <div class="row"><span class="k">Export</span><span class="v muted" id="stExport">Coming later</span></div>
+          <button class="clear-row" id="stClear"><span class="k">Clear history</span></button>
+          <div class="card-note">記録はこの端末のブラウザ内に保存されます</div>
+        </section>
+        <section class="card">
+          <div class="card-title">About</div>
+          <div class="about-logo">pourō</div>
+          <div class="about-tag">Pour slowly. Brew deeply.</div>
+          <div class="about-line">Version 0.1.0</div>
+          <div class="about-line">Static PWA</div>
+          <div class="about-line ja">原典に忠実な、静かな抽出補助具。</div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ===================== SHARED TAB BAR ===================== -->
+    <nav class="tabbar" id="tabbar">
+      <button class="tab" id="tabBrew" data-tab="brew">
+        <span class="ico ico-ui-brew"></span>
+        <span>Brew</span>
+      </button>
+      <button class="tab" id="tabHistory" data-tab="history">
+        <span class="ico ico-ui-history"></span>
+        <span>History</span>
+      </button>
+      <button class="tab" id="tabSettings" data-tab="settings">
+        <span class="ico ico-ui-settings"></span>
+        <span>Settings</span>
+      </button>
+    </nav>
+
+  </div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============ localStorage keys ============ */
+  var K_DRAFT = 'brewDraft', K_ACTIVE = 'activeBrew', K_HISTORY = 'brewHistory', K_SETTINGS = 'pouroSettings';
+  var USE_SAMPLE_DATA = false; // 本番: false（brewHistory 実データのみ）
+
+  /* ============ Generic storage helpers ============ */
+  function readJSON(key, fallback) {
+    try {
+      var raw = localStorage.getItem(key);
+      if (raw == null) return fallback;
+      var v = JSON.parse(raw);
+      return (v == null) ? fallback : v;
+    } catch (e) { return fallback; }
+  }
+  function writeJSON(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+    catch (e) { return false; }
+  }
+
+  /* ============ Domain data ============ */
+  var METHODS = {
+    'yon-roku': {
+      id: 'yon-roku', name: '4:6 Method', sub: '味・濃度を調整',
+      descTitle: '4:6 Method',
+      descBody: '前半で輪郭を整え、後半で濃度を合わせる。迷ったときに戻ってこられる、Pourōの基準となる抽出。',
+      pours: 5, interval: '45s', intervalSec: 45, draw: '3:30', drawSec: 210,
+      icon: '<span class="ico ico-method-46"></span>'
+    },
+    'hybrid': {
+      id: 'hybrid', name: 'Hybrid', sub: '浸漬×透過',
+      descTitle: 'Hybrid',
+      descBody: '浸漬の甘さと、透過の抜けをあわせ持つ。静かに整えたい日に向く抽出。',
+      pours: 4, interval: 'variable', intervalSec: 40, draw: '3:20', drawSec: 200,
+      icon: '<span class="ico ico-method-hybrid"></span>'
+    },
+    'neo': {
+      id: 'neo', name: 'THE NEO BREW', sub: '高濃度＋加水',
+      descTitle: 'THE NEO BREW',
+      descBody: '高濃度で引き出し、加水で仕上げる。余韻を太く、輪郭は澄ませる10投式。',
+      pours: 10, interval: '15s', intervalSec: 15, draw: '3:30', drawSec: 210,
+      icon: '<span class="ico ico-method-neo"></span>'
+    },
+    'ice': {
+      id: 'ice', name: 'Ice Brew', sub: '急冷アイス',
+      descTitle: 'Ice Brew',
+      descBody: '氷で一気に冷やし、香りを閉じ込める。すっきり飲みたい日の冷たい一杯。',
+      pours: 5, interval: '30s', intervalSec: 30, draw: '3:00', drawSec: 180,
+      icon: '<span class="ico ico-method-ice"></span>'
+    }
+  };
+  var METHOD_ORDER = ['yon-roku', 'hybrid', 'neo', 'ice'];
+
+  var DOSES = [12, 18, 24, 30, 36, '調整'];
+  var FLAVORS = [
+    { id: 'sweet', label: 'より甘く', front: [5, 7] },
+    { id: 'balanced', label: 'ベーシック', front: [6, 6] },
+    { id: 'bright', label: 'より明るく', front: [7, 5] }
+  ];
+  var STRENGTHS = [
+    { id: 'light', label: '軽め', backPours: 1, totalPours: 3 },
+    { id: 'standard', label: '標準', backPours: 2, totalPours: 4 },
+    { id: 'strong', label: 'しっかり', backPours: 3, totalPours: 5 }
+  ];
+  var RATIO_MIN = 12, RATIO_MAX = 18;
+
+  /* name <-> id maps (pouroSettings stores display names) */
+  function methodNameToId(n) { for (var k in METHODS) if (METHODS[k].name === n) return k; return 'yon-roku'; }
+  function flavorIdToName(id) { var f = findById(FLAVORS, id); return f ? f.label : 'ベーシック'; }
+  function flavorNameToId(n) { for (var i = 0; i < FLAVORS.length; i++) if (FLAVORS[i].label === n) return FLAVORS[i].id; return 'balanced'; }
+  function strengthIdToName(id) { var s = findById(STRENGTHS, id); return s ? s.label : '標準'; }
+  function strengthNameToId(n) { for (var i = 0; i < STRENGTHS.length; i++) if (STRENGTHS[i].label === n) return STRENGTHS[i].id; return 'standard'; }
+  function findById(arr, id) { for (var i = 0; i < arr.length; i++) if (arr[i].id === id) return arr[i]; return null; }
+
+  /* ============ Pure helpers ============ */
+  function splitEvenly(total, count) {
+    var amounts = [], used = 0;
+    for (var i = 0; i < count; i++) {
+      if (i === count - 1) { amounts.push(total - used); }
+      else { var a = Math.round(total / count); amounts.push(a); used += a; }
+    }
+    return amounts;
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+    });
+  }
+  var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function formatDate(iso) {
+    var d = new Date(iso); if (isNaN(d)) return '';
+    var now = new Date();
+    var hh = String(d.getHours()).padStart(2, '0'), mm = String(d.getMinutes()).padStart(2, '0');
+    if (d.toDateString() === now.toDateString()) return 'Today ' + hh + ':' + mm;
+    var y = new Date(now); y.setDate(now.getDate() - 1);
+    if (d.toDateString() === y.toDateString()) return 'Yesterday ' + hh + ':' + mm;
+    return MONTHS[d.getMonth()] + ' ' + d.getDate();
+  }
+  function formatTime(sec) { // mm:ss padded
+    var s = Math.max(0, Math.floor(sec)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  }
+  function formatTimeLoose(sec) { var s = Math.max(0, Math.floor(sec)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+
+  /* ============ Draft / Active / History / Settings ============ */
+  var DEFAULT_SETTINGS = {
+    defaultBrew: { method: '4:6 Method', dose: 18, ratio: 15, flavor: 'ベーシック', strength: '標準' },
+    brewAssist: { keepScreenAwake: true, soundCues: false, hapticCues: false }
+  };
+
+  function saveBrewDraft(patch) {
+    var cur = readJSON(K_DRAFT, {});
+    if (typeof cur !== 'object' || cur == null) cur = {};
+    for (var k in patch) cur[k] = patch[k];
+    writeJSON(K_DRAFT, cur);
+    return cur;
+  }
+  function loadBrewDraft() { var d = readJSON(K_DRAFT, {}); return (typeof d === 'object' && d) ? d : {}; }
+  function saveActiveBrew(recipe) { writeJSON(K_ACTIVE, recipe); }
+  function loadActiveBrew() { var a = readJSON(K_ACTIVE, null); return (typeof a === 'object') ? a : null; }
+  function saveActiveBrewResult(result) {
+    var a = loadActiveBrew(); if (!a) return; a.result = result; writeJSON(K_ACTIVE, a);
+  }
+  function readHistory() { var a = readJSON(K_HISTORY, []); return Array.isArray(a) ? a : []; }
+  function saveToBrewHistory(entry) {
+    var list = readHistory(); list.unshift(entry); list = list.slice(0, 500);
+    while (true) {
+      try { localStorage.setItem(K_HISTORY, JSON.stringify(list)); return true; }
+      catch (e) {
+        var quota = e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014);
+        if (quota && list.length > 1) { list = list.slice(0, list.length - 1); continue; }
+        return false;
+      }
+    }
+  }
+  function readSettings() {
+    var p = readJSON(K_SETTINGS, null);
+    if (!p || typeof p !== 'object') return DEFAULT_SETTINGS;
+    return {
+      defaultBrew: Object.assign({}, DEFAULT_SETTINGS.defaultBrew, p.defaultBrew || {}),
+      brewAssist: Object.assign({}, DEFAULT_SETTINGS.brewAssist, p.brewAssist || {})
+    };
+  }
+
+  /* ============ Recipe compute (4:6 正本 + 他メソッド均等割り) ============ */
+  function build46Notes(backPours) {
+    var notes = ['前半の味を整える注湯。中心から外側へ、ゆっくり。', '前半の味を整える注湯。中心から外側へ、ゆっくり。'];
+    for (var i = 0; i < backPours; i++) notes.push('後半の濃度を作る注湯。落ち着いて均一に注ぐ。');
+    return notes;
+  }
+  function computeRecipe(draft) {
+    var m = METHODS[draft.method] || METHODS['yon-roku'];
+    var dose = (draft.dose === 'custom') ? null : draft.dose;
+    var ratio = draft.ratio || 15;
+    var water = (dose == null) ? null : Math.round(dose * ratio);
+
+    if (m.id === 'yon-roku') {
+      var f = findById(FLAVORS, draft.flavor) || FLAVORS[1];
+      var s = findById(STRENGTHS, draft.strength) || STRENGTHS[1];
+      var frontWater = null, backWater = null, firstPour = null, secondPour = null, backPourAmounts = null, pourAmounts = null;
+      if (water != null) {
+        frontWater = Math.round(water * 0.4); backWater = water - frontWater;
+        var fSum = f.front[0] + f.front[1];
+        firstPour = Math.round(frontWater * f.front[0] / fSum);
+        secondPour = frontWater - firstPour;
+        backPourAmounts = splitEvenly(backWater, s.backPours);
+        pourAmounts = [firstPour, secondPour].concat(backPourAmounts);
+      }
+      var total = 2 + s.backPours, steps = [];
+      for (var i = 0; i < total; i++) steps.push(i * 45);
+      return {
+        methodId: m.id, method: m.name, dose: dose, ratio: ratio, water: water,
+        flavor: flavorIdToName(draft.flavor), strength: strengthIdToName(draft.strength),
+        flavorId: f.id, strengthId: s.id,
+        frontWater: frontWater, backWater: backWater, firstPour: firstPour, secondPour: secondPour,
+        backPours: s.backPours, totalPours: total, backPourAmounts: backPourAmounts, pourAmounts: pourAmounts,
+        pours: '2 + ' + s.backPours, interval: '45s', intervalSec: 45, drawdown: '3:30', drawdownSec: 210,
+        stepTimesSec: steps, notes: build46Notes(s.backPours), is46: true
+      };
+    }
+    // other methods: even split across pours
+    var pours = m.pours || 5, intervalSec = m.intervalSec, stepsO = [];
+    for (var j = 0; j < pours; j++) stepsO.push(j * intervalSec);
+    var pourAmountsO = (water == null) ? null : splitEvenly(water, pours);
+    var notesO = []; for (var n = 0; n < pours; n++) notesO.push('均一に、中心から外側へ注ぐ。');
+    return {
+      methodId: m.id, method: m.name, dose: dose, ratio: ratio, water: water,
+      flavor: flavorIdToName(draft.flavor), strength: strengthIdToName(draft.strength),
+      pours: String(pours), totalPours: pours, pourAmounts: pourAmountsO,
+      interval: m.interval, intervalSec: intervalSec, drawdown: m.draw || '—', drawdownSec: m.drawSec,
+      stepTimesSec: stepsO, notes: notesO, is46: false
+    };
+  }
+
+  function $(id) { return document.getElementById(id); }
+
+  /* ===================================================================
+     SCREEN MANAGEMENT
+     =================================================================== */
+  var TAB_HIDDEN = { activeBrew: true, brewLog: true };
+  var TAB_ACTIVE = { brewHome: 'brew', recipeSetup: 'brew', preview: 'brew', history: 'history', settings: 'settings' };
+  var RENDERERS = {};
+  var currentScreen = null;
+
+  function showScreen(name) {
+    if (currentScreen === 'activeBrew' && name !== 'activeBrew') stopActiveTimer();
+    var screens = document.querySelectorAll('.screen');
+    for (var i = 0; i < screens.length; i++) screens[i].classList.remove('is-active');
+    var el = $('screen-' + name);
+    if (!el) return;
+    el.classList.add('is-active');
+    currentScreen = name;
+
+    // tab bar visibility + active state
+    var tabbar = $('tabbar');
+    if (TAB_HIDDEN[name]) { tabbar.classList.add('is-hidden'); }
+    else {
+      tabbar.classList.remove('is-hidden');
+      var act = TAB_ACTIVE[name];
+      $('tabBrew').classList.toggle('is-active', act === 'brew');
+      $('tabHistory').classList.toggle('is-active', act === 'history');
+      $('tabSettings').classList.toggle('is-active', act === 'settings');
+    }
+
+    // render
+    if (RENDERERS[name]) RENDERERS[name]();
+
+    // scroll reset (scrollable screens use .scroll-content; Preview uses .content)
+    var sc = el.querySelector('.scroll-content, .content');
+    if (sc && sc.scrollTo) sc.scrollTo({ top: 0, behavior: 'auto' });
+    else if (sc) sc.scrollTop = 0;
+  }
+
+  /* ===================================================================
+     1) BREW HOME
+     =================================================================== */
+  var bhSelected = 'yon-roku';
+  RENDERERS.brewHome = function () {
+    var draft = loadBrewDraft();
+    if (draft.method && METHODS[draft.method]) bhSelected = draft.method;
+    else { var s = readSettings(); bhSelected = methodNameToId(s.defaultBrew.method); }
+    var grid = $('bhGrid'); grid.innerHTML = '';
+    METHOD_ORDER.forEach(function (id) {
+      var m = METHODS[id];
+      var btn = document.createElement('button');
+      btn.className = 'method' + (id === bhSelected ? ' is-active' : '');
+      btn.setAttribute('data-id', id);
+      btn.innerHTML = '<span class="dot"></span><span class="icon">' + m.icon + '</span>' +
+        '<div class="method-name">' + m.name + '</div><div class="method-sub">' + m.sub + '</div>';
+      btn.addEventListener('click', function () { bhSelect(id); });
+      grid.appendChild(btn);
+    });
+    bhUpdateDesc();
+  };
+  function bhSelect(id) {
+    bhSelected = id;
+    var cards = $('bhGrid').querySelectorAll('.method');
+    for (var i = 0; i < cards.length; i++) cards[i].classList.toggle('is-active', cards[i].getAttribute('data-id') === id);
+    bhUpdateDesc();
+  }
+  function bhUpdateDesc() {
+    var m = METHODS[bhSelected];
+    $('bhDescTitle').textContent = m.descTitle;
+    $('bhDescBody').textContent = m.descBody;
+  }
+  $('bhCta').addEventListener('click', function () {
+    saveBrewDraft({ method: bhSelected });
+    showScreen('recipeSetup');
+  });
+
+  /* ===================================================================
+     2) RECIPE SETUP
+     =================================================================== */
+  var rsState = { method: 'yon-roku', dose: 18, ratio: 15, flavor: 'balanced', strength: 'standard' };
+  var rsBuilt = false;
+  function rsInitFromDraft() {
+    var d = loadBrewDraft(), s = readSettings();
+    rsState.method = (d.method && METHODS[d.method]) ? d.method : methodNameToId(s.defaultBrew.method);
+    rsState.dose = (d.dose != null) ? d.dose : (s.defaultBrew.dose || 18);
+    rsState.ratio = d.ratio || s.defaultBrew.ratio || 15;
+    rsState.flavor = d.flavor || flavorNameToId(s.defaultBrew.flavor);
+    rsState.strength = d.strength || strengthNameToId(s.defaultBrew.strength);
+  }
+  function rsBuildPills() {
+    var doseRow = $('rsDose'); doseRow.innerHTML = '';
+    DOSES.forEach(function (dv) {
+      var isCustom = (dv === '調整');
+      var b = document.createElement('button');
+      b.className = 'pill dose-pill';
+      b.textContent = isCustom ? '調整' : dv + 'g';
+      b.setAttribute('data-dose', isCustom ? 'custom' : dv);
+      b.addEventListener('click', function () {
+        rsState.dose = isCustom ? 'custom' : dv;
+        rsMarkActive(doseRow, b); rsRender();
+      });
+      doseRow.appendChild(b);
+    });
+    var flavorRow = $('rsFlavor'); flavorRow.innerHTML = '';
+    FLAVORS.forEach(function (f) {
+      var b = document.createElement('button'); b.className = 'pill'; b.textContent = f.label; b.setAttribute('data-id', f.id);
+      b.addEventListener('click', function () { rsState.flavor = f.id; rsMarkActive(flavorRow, b); rsRender(); });
+      flavorRow.appendChild(b);
+    });
+    var strengthRow = $('rsStrength'); strengthRow.innerHTML = '';
+    STRENGTHS.forEach(function (s) {
+      var b = document.createElement('button'); b.className = 'pill'; b.textContent = s.label; b.setAttribute('data-id', s.id);
+      b.addEventListener('click', function () { rsState.strength = s.id; rsMarkActive(strengthRow, b); rsRender(); });
+      strengthRow.appendChild(b);
+    });
+    rsBuilt = true;
+  }
+  function rsMarkActive(row, active) {
+    var ps = row.querySelectorAll('.pill'); for (var i = 0; i < ps.length; i++) ps[i].classList.toggle('is-active', ps[i] === active);
+  }
+  function rsSyncActive() {
+    rsSetActiveBy('rsDose', 'data-dose', String(rsState.dose));
+    rsSetActiveBy('rsFlavor', 'data-id', rsState.flavor);
+    rsSetActiveBy('rsStrength', 'data-id', rsState.strength);
+  }
+  function rsSetActiveBy(rowId, attr, val) {
+    var ps = $(rowId).querySelectorAll('.pill');
+    for (var i = 0; i < ps.length; i++) ps[i].classList.toggle('is-active', ps[i].getAttribute(attr) === val);
+  }
+  RENDERERS.recipeSetup = function () {
+    if (!rsBuilt) rsBuildPills();
+    rsInitFromDraft();
+    rsSyncActive();
+    rsRender();
+  };
+  function rsRender() {
+    var m = METHODS[rsState.method];
+    $('rsMethod').textContent = m.name;
+    $('rsRatio').textContent = '1:' + rsState.ratio;
+    $('rsMinus').disabled = rsState.ratio <= RATIO_MIN;
+    $('rsPlus').disabled = rsState.ratio >= RATIO_MAX;
+    var is46 = (m.id === 'yon-roku');
+    $('rs46').classList.toggle('is-hidden', !is46);
+
+    var c = computeRecipe(rsState);
+    $('rsCoffee').textContent = (c.dose == null) ? '—' : c.dose + 'g';
+    $('rsWater').textContent = (c.water == null) ? '—' : c.water + 'g';
+    $('rsPours').textContent = is46 ? ('2 + ' + (findById(STRENGTHS, rsState.strength) || STRENGTHS[1]).backPours) : c.pours;
+    $('rsInterval').textContent = m.interval;
+    $('rsDraw').textContent = c.drawdown;
+    if (is46) {
+      $('rsNote').textContent = '前半2投で味を整え、後半' + (findById(STRENGTHS, rsState.strength) || STRENGTHS[1]).backPours + '投で濃度を調整。';
+    } else {
+      $('rsNote').textContent = m.descBody;
+    }
+  }
+  $('rsMinus').addEventListener('click', function () { if (rsState.ratio > RATIO_MIN) { rsState.ratio--; rsRender(); } });
+  $('rsPlus').addEventListener('click', function () { if (rsState.ratio < RATIO_MAX) { rsState.ratio++; rsRender(); } });
+  $('rsBack').addEventListener('click', function () { showScreen('brewHome'); });
+  $('rsCta').addEventListener('click', function () {
+    saveBrewDraft({ method: rsState.method, dose: rsState.dose, ratio: rsState.ratio, flavor: rsState.flavor, strength: rsState.strength });
+    showScreen('preview');
+  });
+
+  /* ===================================================================
+     3) PREVIEW
+     =================================================================== */
+  RENDERERS.preview = function () {
+    var draft = loadBrewDraft();
+    var c = computeRecipe(draft);
+    $('pvMethod').textContent = c.method;
+    $('pvCoffee').textContent = (c.dose == null) ? '—' : c.dose + 'g';
+    $('pvWater').textContent = (c.water == null) ? '—' : c.water + 'g';
+    $('pvRatio').textContent = '1:' + c.ratio;
+    $('pvPours').textContent = c.pours;
+    $('pvDraw').textContent = c.drawdown;
+    $('pvNote').textContent = c.is46
+      ? ('前半2投で味を整え、後半' + c.backPours + '投で濃度を調整。')
+      : (METHODS[c.methodId].descBody);
+    // timeline
+    var tl = $('pvTimeline'); tl.innerHTML = '';
+    var amounts = c.pourAmounts || [];
+    var steps = c.stepTimesSec || [];
+    for (var i = 0; i < amounts.length; i++) {
+      tl.appendChild(tlRow((i + 1) + '投目', formatTimeLoose(steps[i]), amounts[i] + 'g', false));
+    }
+    tl.appendChild(tlRow('落ち切り目安', c.drawdown, '', true));
+    $('pvRinse').textContent = 'ペーパーを湯通しし、サーバーを温めてから抽出を始めます。';
+  };
+  function tlRow(label, time, amount, isDraw) {
+    var row = document.createElement('div');
+    row.className = 'tl-step' + (isDraw ? ' is-drawdown' : '');
+    row.innerHTML = '<div class="tl-marker"></div><div class="tl-label">' + label + '</div>' +
+      '<div class="tl-time">' + time + '</div><div class="tl-amount">' + amount + '</div>';
+    return row;
+  }
+  $('pvBack').addEventListener('click', function () { showScreen('recipeSetup'); });
+  $('pvCta').addEventListener('click', function () {
+    var draft = loadBrewDraft();
+    saveActiveBrew(computeRecipe(draft));
+    showScreen('activeBrew');
+  });
+
+  /* ===================================================================
+     4) ACTIVE BREW
+     =================================================================== */
+  var RING_R = 96, RING_C = 2 * Math.PI * RING_R;
+  var brewState = { baseElapsedMs: 0, runStartPerf: 0, isPaused: false };
+  var activeData = null, rafId = null;
+
+  function abElapsedMs() {
+    if (brewState.isPaused) return brewState.baseElapsedMs;
+    return brewState.baseElapsedMs + (performance.now() - brewState.runStartPerf);
+  }
+  function abSetElapsedMs(ms) { brewState.baseElapsedMs = Math.max(0, ms); brewState.runStartPerf = performance.now(); }
+  function abPause() { if (brewState.isPaused) return; brewState.baseElapsedMs = abElapsedMs(); brewState.isPaused = true; }
+  function abResume() { if (!brewState.isPaused) return; brewState.runStartPerf = performance.now(); brewState.isPaused = false; }
+  function stopActiveTimer() { if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; } }
+
+  function abStepIndex(elapsedSec) {
+    var t = activeData.stepTimesSec, idx = 0;
+    for (var i = 0; i < t.length; i++) { if (elapsedSec >= t[i]) idx = i; else break; }
+    return idx;
+  }
+  RENDERERS.activeBrew = function () {
+    activeData = loadActiveBrew();
+    if (!activeData || !activeData.pourAmounts || !activeData.pourAmounts.length) {
+      // 通常フローでは Preview が activeBrew を保存済み。万一無ければ draft + 既定値で再構成。
+      var s = readSettings().defaultBrew;
+      var base = { method: 'yon-roku', dose: s.dose || 18, ratio: s.ratio || 15, flavor: 'balanced', strength: 'standard' };
+      activeData = computeRecipe(Object.assign(base, loadBrewDraft()));
+      if (activeData.dose == null) { activeData = computeRecipe(base); } // 「調整」未確定時のフォールバック
+      saveActiveBrew(activeData);
+    }
+    $('abRing').style.strokeDasharray = RING_C.toFixed(2);
+    $('abMethod').textContent = activeData.method;
+    brewState.baseElapsedMs = 0; brewState.runStartPerf = performance.now(); brewState.isPaused = false;
+    $('abBtnPause').textContent = 'Pause';
+    stopActiveTimer();
+    abLoop();
+  };
+  function abLoop() { abRenderTick(); rafId = requestAnimationFrame(abLoop); }
+  function abRenderTick() {
+    if (!activeData || !activeData.pourAmounts || !activeData.pourAmounts.length) return;
+    var elapsedSec = abElapsedMs() / 1000;
+    var isDraw = elapsedSec >= activeData.drawdownSec;
+    var total = (activeData.pourAmounts || []).length;
+    var progress = clamp(elapsedSec / activeData.drawdownSec, 0, 1);
+    $('abRing').style.strokeDashoffset = (RING_C * (1 - progress)).toFixed(2);
+    $('abTime').textContent = formatTime(elapsedSec);
+    var btnNext = $('abBtnNext');
+    if (isDraw) {
+      $('abStep').textContent = '落ち切り確認';
+      $('abPour').textContent = 'Wait';
+      $('abTotal').textContent = 'Total ' + activeData.water + 'g / ' + activeData.water + 'g';
+      $('abInstruction').textContent = '落ち切りを確認し、抽出を終了します。';
+      $('abNext').innerHTML = '<span>Finish</span> / 記録へ';
+      btnNext.textContent = 'Finish';
+      return;
+    }
+    btnNext.textContent = 'Next';
+    var idx = abStepIndex(elapsedSec);
+    $('abStep').textContent = (idx + 1) + '投目 / ' + total;
+    var cur = activeData.pourAmounts[idx], sum = 0;
+    for (var i = 0; i <= idx; i++) sum += activeData.pourAmounts[i];
+    $('abPour').textContent = 'Pour ' + cur + 'g';
+    $('abTotal').textContent = 'Total ' + sum + 'g / ' + activeData.water + 'g';
+    $('abInstruction').textContent = activeData.notes[idx] || '';
+    if (idx + 1 < total) {
+      $('abNext').innerHTML = '<span>Next</span> ' + formatTimeLoose(activeData.stepTimesSec[idx + 1]) + ' / Pour ' + activeData.pourAmounts[idx + 1] + 'g';
+    } else {
+      $('abNext').innerHTML = '<span>Next</span> ' + formatTimeLoose(activeData.drawdownSec) + ' / 落ち切り';
+    }
+  }
+  $('abBack').addEventListener('click', function () { showScreen('preview'); });
+  $('abBtnBack').addEventListener('click', function () {
+    var sec = abElapsedMs() / 1000;
+    if (sec >= activeData.drawdownSec) { abSetElapsedMs(activeData.stepTimesSec[activeData.stepTimesSec.length - 1] * 1000); }
+    else { var idx = abStepIndex(sec); abSetElapsedMs(activeData.stepTimesSec[Math.max(0, idx - 1)] * 1000); }
+    abRenderTick();
+  });
+  $('abBtnNext').addEventListener('click', function () {
+    var sec = abElapsedMs() / 1000;
+    if (sec >= activeData.drawdownSec) {
+      saveActiveBrewResult({ elapsedSec: Math.round(sec), completed: true, finishedAt: new Date().toISOString() });
+      showScreen('brewLog');
+      return;
+    }
+    var idx = abStepIndex(sec);
+    if (idx >= activeData.pourAmounts.length - 1) { abSetElapsedMs(activeData.drawdownSec * 1000); }
+    else { abSetElapsedMs(activeData.stepTimesSec[idx + 1] * 1000); }
+    abRenderTick();
+  });
+  $('abBtnPause').addEventListener('click', function () {
+    if (brewState.isPaused) { abResume(); $('abBtnPause').textContent = 'Pause'; }
+    else { abPause(); $('abBtnPause').textContent = 'Resume'; }
+  });
+
+  /* ===================================================================
+     5) BREW LOG
+     =================================================================== */
+  var TAG_OPTIONS = ['甘い', '明るい', 'クリーン', '濃い', '薄い', '苦い', '雑味'];
+  var MAX_TAGS = 3;
+  var blState = { rating: 4, tags: [], note: '', equipment: { beanGrind: '', dripper: '', temperature: '' } };
+  var blSaved = false;
+  RENDERERS.brewLog = function () {
+    var a = loadActiveBrew() || computeRecipe(loadBrewDraft());
+    $('blMethod').textContent = a.method;
+    $('blCoffee').textContent = (a.dose == null ? '—' : a.dose + 'g');
+    $('blWater').textContent = (a.water == null ? '—' : a.water + 'g');
+    $('blRatio').textContent = '1:' + a.ratio;
+    $('blPours').textContent = a.pours;
+    $('blDraw').textContent = a.drawdown;
+    $('blNote').textContent = a.is46 ? ('前半2投で味を整え、後半' + a.backPours + '投で濃度を調整。') : (METHODS[a.methodId] ? METHODS[a.methodId].descBody : '');
+    // reset entry state per brew
+    blState = { rating: 4, tags: [], note: '', equipment: { beanGrind: '', dripper: '', temperature: '' } };
+    blSaved = false;
+    $('blNoteInput').value = '';
+    $('blBean').value = ''; $('blDripper').value = ''; $('blTemp').value = '';
+    var hint = $('blHint'); hint.textContent = '保存すると履歴に追加されます'; hint.classList.remove('saved');
+    $('blSave').disabled = false;
+    blRenderRating(); blRenderTags();
+  };
+  function blRenderRating() {
+    var el = $('blRating'); el.innerHTML = '';
+    for (var i = 1; i <= 5; i++) {
+      (function (n) {
+        var b = document.createElement('button');
+        b.className = 'rdot' + (n <= blState.rating ? ' filled' : '');
+        b.setAttribute('aria-label', n + '点');
+        b.addEventListener('click', function () { blState.rating = (blState.rating === n) ? n - 1 : n; blRenderRating(); });
+        el.appendChild(b);
+      })(i);
+    }
+  }
+  function blRenderTags() {
+    var el = $('blTags'); el.innerHTML = '';
+    var atMax = blState.tags.length >= MAX_TAGS;
+    TAG_OPTIONS.forEach(function (t) {
+      var sel = blState.tags.indexOf(t) >= 0;
+      var b = document.createElement('button');
+      b.className = 'tag' + (sel ? ' selected' : '') + ((!sel && atMax) ? ' disabled' : '');
+      b.textContent = t;
+      b.addEventListener('click', function () {
+        var i = blState.tags.indexOf(t);
+        if (i >= 0) blState.tags.splice(i, 1);
+        else { if (blState.tags.length >= MAX_TAGS) return; blState.tags.push(t); }
+        blRenderTags();
+      });
+      el.appendChild(b);
+    });
+  }
+  $('blNoteInput').addEventListener('input', function () { blState.note = this.value; });
+  $('blBean').addEventListener('input', function () { blState.equipment.beanGrind = this.value; });
+  $('blDripper').addEventListener('input', function () { blState.equipment.dripper = this.value; });
+  $('blTemp').addEventListener('input', function () { blState.equipment.temperature = this.value; });
+  $('blBack').addEventListener('click', function () { showScreen('activeBrew'); });
+  $('blSave').addEventListener('click', function () {
+    if (blSaved) return;
+    var a = loadActiveBrew() || computeRecipe(loadBrewDraft());
+    var entry = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+      createdAt: new Date().toISOString(),
+      method: a.method, dose: a.dose, water: a.water, ratio: a.ratio,
+      flavor: a.flavor, strength: a.strength, pours: a.pours,
+      pourAmounts: (a.pourAmounts || []).slice(), drawdown: a.drawdown,
+      rating: blState.rating, tags: blState.tags.slice(), note: blState.note,
+      equipment: { beanGrind: blState.equipment.beanGrind, dripper: blState.equipment.dripper, temperature: blState.equipment.temperature }
+    };
+    var ok = saveToBrewHistory(entry);
+    var hint = $('blHint');
+    if (ok) {
+      blSaved = true; $('blSave').disabled = true;
+      hint.textContent = '履歴に保存しました'; hint.classList.add('saved');
+      showScreen('history');
+    } else {
+      hint.textContent = '保存できませんでした。空き容量をご確認ください'; hint.classList.remove('saved');
+    }
+  });
+
+  /* ===================================================================
+     6) HISTORY
+     =================================================================== */
+  RENDERERS.history = function () {
+    var stored = readHistory();
+    var entries = stored.length > 0 ? stored : (USE_SAMPLE_DATA ? HISTORY_SAMPLES() : []);
+    var list = $('hsList'), empty = $('hsEmpty'), summary = $('hsSummary');
+    // summary
+    if (entries.length === 0) {
+      list.innerHTML = ''; empty.classList.add('show'); summary.style.display = 'none'; return;
+    }
+    empty.classList.remove('show'); summary.style.display = 'grid';
+    $('hsTotal').textContent = entries.length;
+    $('hsLast').textContent = entries[0].method;
+    var rated = entries.filter(function (e) { return (e.rating || 0) > 0; });
+    $('hsAvg').textContent = rated.length ? (rated.reduce(function (s, e) { return s + e.rating; }, 0) / rated.length).toFixed(1) : '—';
+    // list
+    list.innerHTML = '';
+    entries.forEach(function (e, i) {
+      var card = document.createElement('div');
+      card.className = 'log-card' + (i === 0 ? ' recent' : '');
+      var tagsHtml = (e.tags || []).map(function (t) { return '<span class="mini-tag">' + escapeHtml(t) + '</span>'; }).join('');
+      var recipe = e.dose + 'g / ' + e.water + 'g / 1:' + e.ratio;
+      var equip = [(e.equipment || {}).beanGrind, (e.equipment || {}).dripper, (e.equipment || {}).temperature].filter(Boolean).join(' ・ ');
+      card.innerHTML =
+        '<div class="card-date">' + formatDate(e.createdAt) + '</div>' +
+        '<div class="card-line"><div class="card-method">' + escapeHtml(e.method) + '</div>' + ratingDots(e.rating || 0) + '</div>' +
+        '<div class="card-recipe"><div class="recipe-summary">' + recipe + '</div>' + (tagsHtml ? '<div class="card-tags">' + tagsHtml + '</div>' : '<div></div>') + '</div>' +
+        (e.note ? '<div class="card-note">' + escapeHtml(e.note) + '</div>' : '') +
+        (equip ? '<div class="card-equip">' + escapeHtml(equip) + '</div>' : '');
+      card.addEventListener('click', function () { console.log('open history detail', e.id); });
+      list.appendChild(card);
+    });
+  };
+  function ratingDots(r) {
+    var h = '';
+    for (var i = 1; i <= 5; i++) h += '<span class="rdot' + (i <= r ? ' on' : '') + '"></span>';
+    return '<div class="rating-row">' + h + '</div>';
+  }
+  function HISTORY_SAMPLES() { return []; } // USE_SAMPLE_DATA=false: 空
+
+  /* ===================================================================
+     7) SETTINGS
+     =================================================================== */
+  RENDERERS.settings = function () {
+    var s = readSettings(), db = s.defaultBrew, ba = s.brewAssist;
+    $('stMethod').textContent = db.method;
+    $('stDose').textContent = db.dose + 'g';
+    $('stRatio').textContent = '1:' + db.ratio;
+    $('stFlavor').textContent = db.flavor;
+    $('stStrength').textContent = db.strength;
+    stSetState('stScreen', ba.keepScreenAwake);
+    stSetState('stSound', ba.soundCues);
+    stSetState('stHaptic', ba.hapticCues);
+    $('stCount').textContent = readHistory().length;
+  };
+  function stSetState(id, on) {
+    var el = $(id); el.textContent = on ? 'On' : 'Off';
+    el.classList.toggle('on', !!on); el.classList.toggle('off', !on);
+  }
+  $('stClear').addEventListener('click', function () {
+    if (!window.confirm('履歴をすべて削除しますか？')) return;
+    try { localStorage.removeItem(K_HISTORY); } catch (e) { }
+    $('stCount').textContent = readHistory().length;
+    console.log('history cleared');
+  });
+  $('stExport').addEventListener('click', function () { console.log('export coming later'); });
+
+  /* ===================================================================
+     TAB BAR
+     =================================================================== */
+  $('tabBrew').addEventListener('click', function () { showScreen('brewHome'); });
+  $('tabHistory').addEventListener('click', function () {
+    if (currentScreen === 'history') { var sc = $('screen-history').querySelector('.scroll-content'); if (sc) sc.scrollTo({ top: 0, behavior: 'smooth' }); }
+    else showScreen('history');
+  });
+  $('tabSettings').addEventListener('click', function () {
+    if (currentScreen === 'settings') { var sc = $('screen-settings').querySelector('.scroll-content'); if (sc) sc.scrollTo({ top: 0, behavior: 'smooth' }); }
+    else showScreen('settings');
+  });
+
+  /* ============ Boot ============ */
+  showScreen('brewHome');
+
+  /* expose a few helpers for debugging/verification */
+  window.Pouro = { showScreen: showScreen, computeRecipe: computeRecipe, splitEvenly: splitEvenly, readHistory: readHistory, readSettings: readSettings };
+})();
+</script>
+<script>
+  /* ---- Service worker registration (offline support) ---- */
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('./service-worker.js').then(function (reg) {
+        // When a new SW is found, let it take over on next load silently.
+        reg.addEventListener('updatefound', function () {
+          var sw = reg.installing;
+          if (!sw) return;
+          sw.addEventListener('statechange', function () {
+            if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+              sw.postMessage('SKIP_WAITING');
+            }
+          });
+        });
+      }).catch(function (err) {
+        console.log('SW registration failed:', err);
+      });
+    });
+  }
+</script>
+</body>
+</html>
