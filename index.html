@@ -37,6 +37,10 @@
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; }
+  @supports (-webkit-touch-callout: none) {
+    html { height: -webkit-fill-available; }
+    body { min-height: -webkit-fill-available; }
+  }
   body {
     font-family: var(--font-sans);
     background: var(--bg);
@@ -49,13 +53,17 @@
   .app {
     width: 100%;
     max-width: 375px;
-    height: 100dvh;
+    height: 100svh; /* stable: doesn't jump with iOS dynamic chrome */
     margin: 0 auto;
     position: relative;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     background: var(--bg);
+  }
+  @supports (-webkit-touch-callout: none) {
+    /* iOS standalone PWA: use fill-available to match true screen height */
+    .app { height: -webkit-fill-available; }
   }
 
   /* Screens: only the active one shows */
@@ -103,8 +111,9 @@
   /* ============ Tab bar (single, shared) ============ */
   .tabbar {
     position: relative; z-index: 2;
+    flex-shrink: 0; /* prevent tabbar from being compressed in flex layout */
     display: grid; grid-template-columns: repeat(3, 1fr); align-items: center;
-    padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0px));
+    padding: 10px 0 max(10px, calc(10px + env(safe-area-inset-bottom)));
     border-top: 1px solid var(--border);
     background: rgba(245,240,232,0.78);
     -webkit-backdrop-filter: blur(8px);
