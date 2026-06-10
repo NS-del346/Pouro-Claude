@@ -1074,7 +1074,7 @@
     } else if (c.isHybrid) {
       $('rsNote').textContent = '要：' + m.equipment + '。前半透過（Switch open）→ 浸漬注湯（Switch close）→ 排出（Switch open）の3フェーズ。';
     } else if (c.isIce) {
-      $('rsNote').textContent = '氷はサーバー（またはグラス）に入れて準備。湯 ' + (c.hotWater || '—') + 'g を5投で注ぎ、氷 ' + (c.ice || '—') + 'g で急冷。';
+      $('rsNote').textContent = '湯量は豆量×7.5（' + (c.hotWater || '—') + 'g）、氷量は豆量×4（' + (c.ice || '—') + 'g）で固定計算。比率は湯量に反映されません。';
     } else {
       $('rsNote').textContent = m.descBody;
     }
@@ -1179,8 +1179,9 @@
     if (!activeData || !activeData.pourAmounts || !activeData.pourAmounts.length) {
       // 通常フローでは Preview が activeBrew を保存済み。万一無ければ draft + 既定値で再構成。
       var s = readSettings().defaultBrew;
-      var base = { method: 'yon-roku', dose: s.dose || 18, ratio: s.ratio || 15, flavor: 'balanced', strength: 'standard' };
-      activeData = computeRecipe(Object.assign(base, loadBrewDraft()));
+      var base = { method: methodNameToId(s.method || '4:6 Method'), dose: s.dose || 18, ratio: s.ratio || 15, flavor: flavorNameToId(s.flavor || 'ベーシック'), strength: strengthNameToId(s.strength || 'しっかり') };
+      var merged = Object.assign({}, base, loadBrewDraft());
+      activeData = computeRecipe(merged);
       if (activeData.dose == null) { activeData = computeRecipe(base); } // 「調整」未確定時のフォールバック
       saveActiveBrew(activeData);
     }
@@ -1387,7 +1388,8 @@
       var card = document.createElement('div');
       card.className = 'log-card' + (i === 0 ? ' recent' : '');
       var tagsHtml = (e.tags || []).map(function (t) { return '<span class="mini-tag">' + escapeHtml(t) + '</span>'; }).join('');
-      var recipe = e.dose + 'g / ' + e.water + 'g / 1:' + e.ratio;
+      var waterLabel = (e.isIce && e.hotWater != null) ? ('湯' + e.hotWater + 'g+氷' + e.ice + 'g') : (e.water + 'g');
+      var recipe = e.dose + 'g / ' + waterLabel + ' / 1:' + e.ratio;
       var equip = [(e.equipment || {}).beanGrind, (e.equipment || {}).dripper, (e.equipment || {}).temperature].filter(Boolean).join(' ・ ');
       card.innerHTML =
         '<div class="card-date">' + formatDate(e.createdAt) + '</div>' +
