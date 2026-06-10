@@ -372,6 +372,21 @@
   #screen-history .empty-mark { width: 52px; height: 52px; border-radius: 50%; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--accent); margin: 0 auto 16px; }
   #screen-history .empty h2 { font-size: 18px; font-weight: 600; color: var(--ink); }
   #screen-history .empty p { font-size: 14px; color: var(--sub); margin-top: 9px; line-height: 1.6; }
+  #screen-history .log-card { -webkit-tap-highlight-color: transparent; }
+  #screen-history .card-action {
+    margin-top: 13px;
+    padding-top: 11px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+  .ice-water-stack {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 2px;
+    line-height: 1.2;
+  }
 
   /* ===================================================================
      7) SETTINGS
@@ -1160,7 +1175,7 @@
     var c = computeRecipe(rsState);
     $('rsCoffee').textContent = (c.dose == null) ? '—' : c.dose + 'g';
     if (c.isIce) {
-      $('rsWater').textContent = (c.hotWater == null) ? '—' : '湯 ' + c.hotWater + 'g + 氷 ' + c.ice + 'g';
+      $('rsWater').innerHTML = (c.hotWater == null) ? '—' : formatIceWaterLabelHtml(c.hotWater, c.ice);
     } else {
       $('rsWater').textContent = (c.water == null) ? '—' : c.water + 'g';
     }
@@ -1173,7 +1188,7 @@
     } else if (c.isHybrid) {
       $('rsNote').textContent = 'Switchの開閉が前提です。前半は透過、後半は閉じて浸漬し、最後に開けて排出します。';
     } else if (c.isIce) {
-      $('rsNote').textContent = '湯量 ' + (c.hotWater || '—') + 'g・氷 ' + (c.ice || '—') + 'g（比率は湯量に反映されません）。タイマーの累計は注いだ湯量のみです。';
+      $('rsNote').textContent = '湯量 ' + (c.hotWater || '—') + 'g / 氷 ' + (c.ice || '—') + 'g（比率は湯量に反映されません）。タイマーの累計は注いだ湯量のみです。';
     } else if (m.id === 'neo') {
       $('rsNote').textContent = '細かく10回に分けて注ぐレシピです。1投目の後は30秒、2投目以降は15秒リズムを優先します。';
     } else {
@@ -1197,7 +1212,7 @@
     $('pvMethod').textContent = c.method;
     $('pvCoffee').textContent = (c.dose == null) ? '—' : c.dose + 'g';
     if (c.isIce) {
-      $('pvWater').textContent = (c.hotWater == null) ? '—' : '湯 ' + c.hotWater + 'g + 氷 ' + c.ice + 'g';
+      $('pvWater').innerHTML = (c.hotWater == null) ? '—' : formatIceWaterLabelHtml(c.hotWater, c.ice);
     } else {
       $('pvWater').textContent = (c.water == null) ? '—' : c.water + 'g';
     }
@@ -1384,7 +1399,7 @@
     $('blMethod').textContent = a.method;
     $('blCoffee').textContent = (a.dose == null ? '—' : a.dose + 'g');
     if (a.isIce) {
-      $('blWater').textContent = (a.hotWater == null ? '—' : '湯 ' + a.hotWater + 'g + 氷 ' + a.ice + 'g');
+      $('blWater').innerHTML = (a.hotWater == null ? '—' : formatIceWaterLabelHtml(a.hotWater, a.ice));
     } else {
       $('blWater').textContent = (a.water == null ? '—' : a.water + 'g');
     }
@@ -1396,7 +1411,7 @@
     } else if (a.isHybrid) {
       $('blNote').textContent = '器具：' + (a.equipment || 'HARIO Switch系') + '。前半透過・後半浸漬→排出のハイブリッド抽出。';
     } else if (a.isIce) {
-      $('blNote').textContent = '急冷アイス。湯 ' + (a.hotWater || '—') + 'g + 氷 ' + (a.ice || '—') + 'g。仕上がり量は氷の溶け方で変わります。';
+      $('blNote').textContent = '急冷アイス。' + formatIceWaterLabel(a.hotWater, a.ice) + '。仕上がり量は氷の溶け方で変わります。';
     } else {
       $('blNote').textContent = (METHODS[a.methodId] ? METHODS[a.methodId].descBody : '');
     }
@@ -1476,8 +1491,7 @@
      6) HISTORY
      =================================================================== */
   RENDERERS.history = function () {
-    var stored = readHistory();
-    var entries = stored.length > 0 ? stored : (USE_SAMPLE_DATA ? HISTORY_SAMPLES() : []);
+    var entries = getHistoryEntriesForDisplay();
     var list = $('hsList'), empty = $('hsEmpty'), summary = $('hsSummary');
     // summary
     if (entries.length === 0) {
@@ -1493,26 +1507,66 @@
     entries.forEach(function (e, i) {
       var card = document.createElement('div');
       card.className = 'log-card' + (i === 0 ? ' recent' : '');
+      card.setAttribute('data-history-index', String(i));
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
       var tagsHtml = (e.tags || []).map(function (t) { return '<span class="mini-tag">' + escapeHtml(t) + '</span>'; }).join('');
-      var waterLabel = (e.isIce && e.hotWater != null) ? ('湯' + e.hotWater + 'g+氷' + e.ice + 'g') : (e.water + 'g');
+      var waterLabel = (e.isIce && e.hotWater != null) ? formatIceWaterLabel(e.hotWater, e.ice) : (e.water + 'g');
       var recipe = e.dose + 'g / ' + waterLabel + ' / 1:' + e.ratio;
       var equip = [(e.equipment || {}).beanGrind, (e.equipment || {}).dripper, (e.equipment || {}).temperature].filter(Boolean).join(' ・ ');
       card.innerHTML =
         '<div class="card-date">' + formatDate(e.createdAt) + '</div>' +
         '<div class="card-line"><div class="card-method">' + escapeHtml(e.method) + '</div>' + ratingDots(e.rating || 0) + '</div>' +
-        '<div class="card-recipe"><div class="recipe-summary">' + recipe + '</div>' + (tagsHtml ? '<div class="card-tags">' + tagsHtml + '</div>' : '<div></div>') + '</div>' +
+        '<div class="card-recipe"><div class="recipe-summary">' + escapeHtml(recipe) + '</div>' + (tagsHtml ? '<div class="card-tags">' + tagsHtml + '</div>' : '<div></div>') + '</div>' +
         (e.note ? '<div class="card-note">' + escapeHtml(e.note) + '</div>' : '') +
-        (equip ? '<div class="card-equip">' + escapeHtml(equip) + '</div>' : '');
-      card.addEventListener('click', function () { openHistoryDetail(e, i); });
+        (equip ? '<div class="card-equip">' + escapeHtml(equip) + '</div>' : '') +
+        '<div class="card-action">詳細を見る</div>';
       list.appendChild(card);
     });
   };
+
+  $('hsList').addEventListener('click', function (ev) {
+    var card = ev.target.closest ? ev.target.closest('.log-card') : null;
+    if (!card) return;
+    var index = Number(card.getAttribute('data-history-index'));
+    if (!Number.isFinite(index)) return;
+    openHistoryDetailByIndex(index);
+  });
+  $('hsList').addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Enter' && ev.key !== ' ') return;
+    var card = ev.target.closest ? ev.target.closest('.log-card') : null;
+    if (!card) return;
+    ev.preventDefault();
+    var index = Number(card.getAttribute('data-history-index'));
+    if (!Number.isFinite(index)) return;
+    openHistoryDetailByIndex(index);
+  });
   function ratingDots(r) {
     var h = '';
     for (var i = 1; i <= 5; i++) h += '<span class="rdot' + (i <= r ? ' on' : '') + '"></span>';
     return '<div class="rating-row">' + h + '</div>';
   }
   function HISTORY_SAMPLES() { return []; } // USE_SAMPLE_DATA=false: 空
+
+  function formatIceWaterLabel(hotWater, ice) {
+    var hot = (hotWater != null) ? hotWater : '—';
+    var iceAmount = (ice != null) ? ice : '—';
+    return '湯' + hot + 'g / 氷' + iceAmount + 'g';
+  }
+  function formatIceWaterLabelHtml(hotWater, ice) {
+    var hot = (hotWater != null) ? hotWater : '—';
+    var iceAmount = (ice != null) ? ice : '—';
+    return '<span class="ice-water-stack"><span>湯' + hot + 'g</span><span>氷' + iceAmount + 'g</span></span>';
+  }
+  function getHistoryEntriesForDisplay() {
+    var stored = readHistory();
+    return stored.length > 0 ? stored : (USE_SAMPLE_DATA ? HISTORY_SAMPLES() : []);
+  }
+  function openHistoryDetailByIndex(index) {
+    var entries = getHistoryEntriesForDisplay();
+    if (index < 0 || index >= entries.length) return;
+    openHistoryDetail(entries[index], index);
+  }
 
   /* ===================================================================
      8) HISTORY DETAIL
@@ -1532,14 +1586,14 @@
     var isIce = !!(e.isIce);
     var isHybrid = !!(e.isHybrid);
     var methodId = e.methodId || methodNameToId(e.method || '');
-    var waterLabel = isIce && e.hotWater != null
-      ? ('湯 ' + e.hotWater + 'g + 氷 ' + (e.ice != null ? e.ice : '—') + 'g')
-      : (e.water != null ? e.water + 'g' : '—');
+    var waterHtml = isIce
+      ? (e.hotWater != null ? formatIceWaterLabelHtml(e.hotWater, e.ice) : '—')
+      : escapeHtml(e.water != null ? e.water + 'g' : '—');
 
     var r1 = document.createElement('div'); r1.className = 'snap-row';
     r1.innerHTML =
       '<div class="snap-stat"><div class="snap-label">Coffee</div><div class="snap-value">' + escapeHtml(e.dose != null ? e.dose + 'g' : '—') + '</div></div>' +
-      '<div class="snap-stat"><div class="snap-label">Water</div><div class="snap-value">' + escapeHtml(waterLabel) + '</div></div>' +
+      '<div class="snap-stat"><div class="snap-label">Water</div><div class="snap-value">' + waterHtml + '</div></div>' +
       '<div class="snap-stat"><div class="snap-label">Ratio</div><div class="snap-value">' + escapeHtml(e.ratio != null ? '1:' + e.ratio : '—') + '</div></div>';
     el.appendChild(r1);
 
@@ -1558,7 +1612,7 @@
     } else if (isHybrid) {
       noteText = '器具：' + (e.methodEquipment || 'HARIO Switch系') + '。前半透過・後半浸漬→排出。';
     } else if (isIce) {
-      noteText = '急冷アイス。湯 ' + (e.hotWater != null ? e.hotWater : '—') + 'g + 氷 ' + (e.ice != null ? e.ice : '—') + 'g。';
+      noteText = '急冷アイス。' + formatIceWaterLabel(e.hotWater, e.ice) + '。';
     } else if (methodId === 'neo') {
       noteText = '高濃度で10投して引き出し、加水で仕上げる。';
     }
