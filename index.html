@@ -1854,8 +1854,20 @@
   $('hdNote').addEventListener('input', function () { hdEditState.note = this.value; });
   $('hdSave').addEventListener('click', function () {
     var hint = $('hdHint');
+    var existingEquipment =
+      (selectedEntry && selectedEntry.equipment && typeof selectedEntry.equipment === 'object')
+        ? selectedEntry.equipment : {};
+    var nextGrind =
+      hdEditState.equipment.beanGrind ||
+      existingEquipment.grind ||
+      existingEquipment.beanGrind || '';
     var patch = {
-      equipment: { beanGrind: hdEditState.equipment.beanGrind, dripper: hdEditState.equipment.dripper, temperature: hdEditState.equipment.temperature },
+      equipment: Object.assign({}, existingEquipment, {
+        beanGrind:   nextGrind,
+        grind:       nextGrind,
+        dripper:     hdEditState.equipment.dripper,
+        temperature: hdEditState.equipment.temperature
+      }),
       tags: hdEditState.tags.slice(),
       note: hdEditState.note
     };
@@ -1896,7 +1908,7 @@
     if (e.equipment && typeof e.equipment === 'object') {
       rebrewDraft.equipment = {
         bean:        e.equipment.bean        || '',
-        grind:       e.equipment.grind       || '',
+        grind:       e.equipment.grind || e.equipment.beanGrind || '',
         temperature: e.equipment.temperature || '',
         grinder:     e.equipment.grinder     || '',
         dripper:     e.equipment.dripper     || ''
