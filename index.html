@@ -128,19 +128,14 @@
   .tab span { font-size: 11px; letter-spacing: 0.04em; }
   .tab .ico { width: 24px; height: 24px; }
 
-  /* ============ Icon assets (delivered PNG set; color variant per context) ============ */
+  /* ============ Icon assets (PNG set; color variant per context) ============ */
   /* Uses background-image with the brand color variant appropriate to each surface:
-     methods = dark (active card = amber), tabs = muted/active dark, on-dark button = white. */
+     tabs = muted/active dark, on-dark button = white. Method cards use inline SVG. */
   .ico {
     display: inline-block; width: 24px; height: 24px; flex: none;
     background-position: center; background-repeat: no-repeat; background-size: contain;
     background-image: var(--ico);
   }
-  /* Method cards — dark (selected card shows amber) */
-  .ico-method-46     { --ico: url("assets/icons/128/method/icon-method-46-dark.png"); }
-  .ico-method-hybrid { --ico: url("assets/icons/128/method/icon-method-hybrid-dark.png"); }
-  .ico-method-neo    { --ico: url("assets/icons/128/method/icon-method-neo-dark.png"); }
-  .ico-method-ice    { --ico: url("assets/icons/128/method/icon-method-ice-dark.png"); }
   /* Tabs — muted when inactive, dark when active */
   .ico-ui-brew       { --ico: url("assets/icons/128/ui/icon-ui-brew-muted.png"); }
   .ico-ui-history    { --ico: url("assets/icons/128/ui/icon-ui-history-muted.png"); }
@@ -171,12 +166,6 @@
   #screen-brewHome .method .dot { position: absolute; top: 11px; right: 11px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); opacity: 0; }
   #screen-brewHome .method.is-active .dot { opacity: 1; }
   #screen-brewHome .method .icon { height: 36px; display: flex; align-items: center; }
-  #screen-brewHome .method .icon .ico { width: 27px; height: 27px; opacity: 0.9; }
-  #screen-brewHome .method.is-active .ico-method-46     { --ico: url("assets/icons/128/method/icon-method-46-active.png"); }
-  #screen-brewHome .method.is-active .ico-method-hybrid { --ico: url("assets/icons/128/method/icon-method-hybrid-active.png"); }
-  #screen-brewHome .method.is-active .ico-method-neo    { --ico: url("assets/icons/128/method/icon-method-neo-active.png"); }
-  #screen-brewHome .method.is-active .ico-method-ice    { --ico: url("assets/icons/128/method/icon-method-ice-active.png"); }
-  #screen-brewHome .method.is-active .icon .ico { opacity: 1; }
   #screen-brewHome .method .icon svg { display: block; width: 34px; height: 34px; }
   #screen-brewHome .method .icon svg path, #screen-brewHome .method .icon svg circle, #screen-brewHome .method .icon svg line, #screen-brewHome .method .icon svg polyline { stroke: var(--ink); opacity: 0.82; }
   #screen-brewHome .method.is-active .icon svg path, #screen-brewHome .method.is-active .icon svg circle, #screen-brewHome .method.is-active .icon svg line, #screen-brewHome .method.is-active .icon svg polyline { stroke: var(--accent); opacity: 1; }
