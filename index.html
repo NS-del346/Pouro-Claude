@@ -170,15 +170,16 @@
   #screen-brewHome .method.is-active { border-color: var(--accent); box-shadow: 0 6px 16px rgba(176,125,79,0.16); transform: translateY(-1px); }
   #screen-brewHome .method .dot { position: absolute; top: 11px; right: 11px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); opacity: 0; }
   #screen-brewHome .method.is-active .dot { opacity: 1; }
-  #screen-brewHome .method .icon { height: 28px; display: flex; align-items: center; }
+  #screen-brewHome .method .icon { height: 36px; display: flex; align-items: center; }
   #screen-brewHome .method .icon .ico { width: 27px; height: 27px; opacity: 0.9; }
   #screen-brewHome .method.is-active .ico-method-46     { --ico: url("assets/icons/128/method/icon-method-46-active.png"); }
   #screen-brewHome .method.is-active .ico-method-hybrid { --ico: url("assets/icons/128/method/icon-method-hybrid-active.png"); }
   #screen-brewHome .method.is-active .ico-method-neo    { --ico: url("assets/icons/128/method/icon-method-neo-active.png"); }
   #screen-brewHome .method.is-active .ico-method-ice    { --ico: url("assets/icons/128/method/icon-method-ice-active.png"); }
   #screen-brewHome .method.is-active .icon .ico { opacity: 1; }
-  #screen-brewHome .method .icon svg { display: block; }
+  #screen-brewHome .method .icon svg { display: block; width: 34px; height: 34px; }
   #screen-brewHome .method .icon svg path, #screen-brewHome .method .icon svg circle, #screen-brewHome .method .icon svg line, #screen-brewHome .method .icon svg polyline { stroke: var(--ink); opacity: 0.82; }
+  #screen-brewHome .method.is-active .icon svg path, #screen-brewHome .method.is-active .icon svg circle, #screen-brewHome .method.is-active .icon svg line, #screen-brewHome .method.is-active .icon svg polyline { stroke: var(--accent); opacity: 1; }
   #screen-brewHome .method-name { font-size: 18px; font-weight: 600; color: var(--ink); margin-top: 10px; line-height: 1.15; }
   #screen-brewHome .method[data-id="neo"] .method-name { font-size: 16px; }
   #screen-brewHome .method-sub { font-size: 12.5px; color: var(--sub); margin-top: 4px; }
@@ -874,7 +875,7 @@
       descTitle: '4:6 Method',
       descBody: 'Tetsu Kasuya氏考案の4:6 Methodをベースにした標準ガイド。前半2投で味の方向性を、後半3投で濃度を調整。注ぎ切るたびに粉床が落ち着くのを待つ。',
       pours: 5, interval: '45s', intervalSec: 45, draw: '3:30', drawSec: 210,
-      icon: '<span class="ico ico-method-46"></span>'
+      icon: '<svg viewBox="0 0 36 36" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="34" height="34" aria-hidden="true"><line x1="10" y1="4" x2="10" y2="9"/><line x1="14" y1="4" x2="14" y2="9"/><line x1="21" y1="4" x2="21" y2="9"/><line x1="25" y1="4" x2="25" y2="9"/><line x1="29" y1="4" x2="29" y2="9"/><path d="M 6,10 L 30,10 L 24,26 L 12,26 Z"/><line x1="18" y1="26" x2="18" y2="32"/></svg>'
     },
     'hybrid': {
       id: 'hybrid', name: 'Hybrid', sub: '浸漬×透過',
@@ -882,21 +883,21 @@
       descBody: '浸漬の甘さと、透過の抜けをあわせ持つ。HARIO Switch（または同等の開閉機構付きドリッパー）が必要。前半は透過、後半は浸漬後に排出。Switchの開閉が鍵。',
       equipment: 'HARIO Switch または同等の開閉機構付きドリッパー',
       pours: 3, interval: 'variable', intervalSec: 30, draw: '3:00', drawSec: 180,
-      icon: '<span class="ico ico-method-hybrid"></span>'
+      icon: '<svg viewBox="0 0 36 36" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="34" height="34" aria-hidden="true"><path d="M 6,8 L 30,8 L 24,23 L 12,23 Z"/><line x1="18" y1="23" x2="18" y2="26"/><line x1="13" y1="29" x2="23" y2="29"/><circle cx="18" cy="29" r="2.2"/><line x1="18" y1="31.2" x2="18" y2="34"/></svg>'
     },
     'neo': {
       id: 'neo', name: 'THE NEO BREW', sub: '高濃度＋加水',
       descTitle: 'THE NEO BREW',
       descBody: '高濃度で引き出し、加水で仕上げる10投式。1投目後は30秒置き、2投目以降は15秒リズム。注湯量とテンポを優先。',
       pours: 10, interval: '15s', intervalSec: 15, draw: '3:30', drawSec: 210,
-      icon: '<span class="ico ico-method-neo"></span>'
+      icon: '<svg viewBox="0 0 36 36" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="34" height="34" aria-hidden="true"><line x1="7" y1="6" x2="7" y2="10"/><line x1="11" y1="4" x2="11" y2="10"/><line x1="15" y1="3" x2="15" y2="10"/><line x1="18" y1="2" x2="18" y2="10"/><line x1="21" y1="3" x2="21" y2="10"/><line x1="25" y1="4" x2="25" y2="10"/><line x1="29" y1="6" x2="29" y2="10"/><path d="M 6,11 L 30,11 L 24,27 L 12,27 Z"/><line x1="18" y1="27" x2="18" y2="33"/></svg>'
     },
     'ice': {
       id: 'ice', name: 'Ice Brew', sub: '急冷アイス',
       descTitle: 'Ice Brew',
       descBody: '氷で急冷し、香りを閉じ込めるアイスコーヒー。抽出に使う湯量と氷量を分けて管理します。タイマーの累計は、実際に注いだ湯量のみを表示します。仕上がり量は氷の溶け方で変わります。',
       pours: 5, interval: '30s', intervalSec: 30, draw: '3:00', drawSec: 180,
-      icon: '<span class="ico ico-method-ice"></span>'
+      icon: '<svg viewBox="0 0 36 36" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="34" height="34" aria-hidden="true"><path d="M 6,6 L 30,6 L 24,20 L 12,20 Z"/><line x1="18" y1="20" x2="18" y2="23"/><path d="M 10,24 L 17,24 L 17,31 L 10,31 Z"/><path d="M 19,24 L 26,24 L 26,31 L 19,31 Z"/><line x1="13.5" y1="26" x2="13.5" y2="29"/><line x1="12" y1="27.5" x2="15" y2="27.5"/><line x1="22.5" y1="26" x2="22.5" y2="29"/><line x1="21" y1="27.5" x2="24" y2="27.5"/></svg>'
     }
   };
   var METHOD_ORDER = ['yon-roku', 'hybrid', 'neo', 'ice'];
