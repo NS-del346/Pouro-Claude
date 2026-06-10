@@ -678,7 +678,8 @@
     'hybrid': {
       id: 'hybrid', name: 'Hybrid', sub: '浸漬×透過',
       descTitle: 'Hybrid',
-      descBody: '浸漬の甘さと、透過の抜けをあわせ持つ。静かに整えたい日に向く抽出。',
+      descBody: '浸漬の甘さと、透過の抜けをあわせ持つ。HARIO Switch（または同等の開閉機構付きドリッパー）を使用。静かに整えたい日に向く抽出。',
+      equipment: 'HARIO Switch または同等の開閉機構付きドリッパー',
       pours: 4, interval: 'variable', intervalSec: 40, draw: '3:20', drawSec: 200,
       icon: '<span class="ico ico-method-hybrid"></span>'
     },
@@ -692,7 +693,7 @@
     'ice': {
       id: 'ice', name: 'Ice Brew', sub: '急冷アイス',
       descTitle: 'Ice Brew',
-      descBody: '氷で一気に冷やし、香りを閉じ込める。すっきり飲みたい日の冷たい一杯。',
+      descBody: '氷で急冷し、香りを閉じ込めるアイスコーヒー。Hot湯量とIce量を分けて管理。サーバーまたはグラスに氷を入れて準備する。',
       pours: 5, interval: '30s', intervalSec: 30, draw: '3:00', drawSec: 180,
       icon: '<span class="ico ico-method-ice"></span>'
     }
@@ -792,8 +793,13 @@
 
   /* ============ Recipe compute (4:6 正本 + 他メソッド均等割り) ============ */
   function build46Notes(backPours) {
-    var notes = ['前半の味を整える注湯。中心から外側へ、ゆっくり。', '前半の味を整える注湯。中心から外側へ、ゆっくり。'];
-    for (var i = 0; i < backPours; i++) notes.push('後半の濃度を作る注湯。落ち着いて均一に注ぐ。');
+    var notes = [
+      '前半1投目：味の方向性を決める注湯。中心から外側へゆっくり。',
+      '前半2投目：味を整える注湯。中心から外側へゆっくり。'
+    ];
+    for (var i = 0; i < backPours; i++) {
+      notes.push('後半' + (i + 1) + '投目：濃度を作る注湯。落ち着いて均一に注ぐ。');
+    }
     return notes;
   }
   function computeRecipe(draft) {
@@ -822,15 +828,86 @@
         flavorId: f.id, strengthId: s.id,
         frontWater: frontWater, backWater: backWater, firstPour: firstPour, secondPour: secondPour,
         backPours: s.backPours, totalPours: total, backPourAmounts: backPourAmounts, pourAmounts: pourAmounts,
-        pours: '2 + ' + s.backPours, interval: '45s', intervalSec: 45, drawdown: '3:30', drawdownSec: 210,
+        pours: '前半2 + 後半' + s.backPours, interval: '45s', intervalSec: 45,
+        drawdown: (s.id === 'light' ? '3:00' : s.id === 'strong' ? '4:00' : '3:30'),
+        drawdownSec: (s.id === 'light' ? 180 : s.id === 'strong' ? 240 : 210),
         stepTimesSec: steps, notes: build46Notes(s.backPours), is46: true
       };
     }
-    // other methods: even split across pours
+    if (m.id === 'hybrid') {
+      // HARIO Switch方式：前半60%浸漬(Switch閉)、後半40%透過(Switch開)
+      var hFront = (water == null) ? null : Math.round(water * 0.6);
+      var hBack = (water == null) ? null : (water - hFront);
+      var hFrontAmounts = (hFront == null) ? null : splitEvenly(hFront, 2);
+      var hBackAmounts = (hBack == null) ? null : splitEvenly(hBack, 2);
+      var hAmounts = (hFrontAmounts && hBackAmounts) ? hFrontAmounts.concat(hBackAmounts) : null;
+      var hSteps = [0, 40, 120, 160];
+      var hNotes = [
+        '【Switch を閉じる】浸漬フェーズ開始。中心から外側へゆっくり注ぐ。',
+        '浸漬フェーズ注湯。Switch は閉じたまま。中心から外側へ。',
+        '【Switch を開ける】透過フェーズ開始。注湯。',
+        '透過フェーズ注湯。湯温をやや下げると甘さが増す。'
+      ];
+      return {
+        methodId: m.id, method: m.name, dose: dose, ratio: ratio, water: water,
+        flavor: flavorIdToName(draft.flavor), strength: strengthIdToName(draft.strength),
+        pours: '4', totalPours: 4, pourAmounts: hAmounts,
+        immersionWater: hFront, drawdownWater: hBack,
+        interval: 'variable', intervalSec: 40, drawdown: '3:20', drawdownSec: 200,
+        stepTimesSec: hSteps, notes: hNotes,
+        equipment: m.equipment,
+        is46: false, isHybrid: true
+      };
+    }
+    if (m.id === 'neo') {
+      var nPours = 10, nSteps = [];
+      for (var j = 0; j < nPours; j++) nSteps.push(j * 15);
+      var nAmounts = (water == null) ? null : splitEvenly(water, nPours);
+      var nNotes = [];
+      for (var ni = 0; ni < nPours; ni++) {
+        if (ni === 0) nNotes.push('1投目：蒸らし注湯。中心から外側へゆっくり。');
+        else if (ni < nPours - 1) nNotes.push((ni + 1) + '投目：15秒リズムで注湯。中心から外側へ。');
+        else nNotes.push('10投目：最終注湯。均一に仕上げる。');
+      }
+      return {
+        methodId: m.id, method: m.name, dose: dose, ratio: ratio, water: water,
+        flavor: flavorIdToName(draft.flavor), strength: strengthIdToName(draft.strength),
+        pours: '10', totalPours: nPours, pourAmounts: nAmounts,
+        interval: '15s', intervalSec: 15, drawdown: '3:30', drawdownSec: 210,
+        stepTimesSec: nSteps, notes: nNotes,
+        is46: false, isHybrid: false
+      };
+    }
+    if (m.id === 'ice') {
+      // 急冷アイス：Total = dose × ratio、Hot water ≈ 60%、Ice ≈ 40%
+      var iTotal = water;
+      var iHot = (iTotal == null) ? null : Math.round(iTotal * 0.6);
+      var iIce = (iTotal == null) ? null : (iTotal - iHot);
+      var iPours = 5, iSteps = [];
+      for (var ij = 0; ij < iPours; ij++) iSteps.push(ij * 30);
+      var iAmounts = (iHot == null) ? null : splitEvenly(iHot, iPours);
+      var iNotes = [
+        '氷をサーバー（またはグラス）に入れておく。Hot湯を蒸らし注湯。中心から外側へ。',
+        '2投目：Hot湯をリズムよく注ぐ。30秒ごとに注湯。',
+        '3投目：Hot湯を注ぐ。落ち着いて均一に。',
+        '4投目：Hot湯を注ぐ。',
+        '5投目：最終Hot湯注湯。均一に仕上げる。'
+      ];
+      return {
+        methodId: m.id, method: m.name, dose: dose, ratio: ratio, water: iTotal,
+        hotWater: iHot, ice: iIce,
+        flavor: flavorIdToName(draft.flavor), strength: strengthIdToName(draft.strength),
+        pours: '5', totalPours: iPours, pourAmounts: iAmounts,
+        interval: '30s', intervalSec: 30, drawdown: '3:00', drawdownSec: 180,
+        stepTimesSec: iSteps, notes: iNotes,
+        is46: false, isHybrid: false, isIce: true
+      };
+    }
+    // fallback: even split
     var pours = m.pours || 5, intervalSec = m.intervalSec, stepsO = [];
-    for (var j = 0; j < pours; j++) stepsO.push(j * intervalSec);
+    for (var j2 = 0; j2 < pours; j2++) stepsO.push(j2 * intervalSec);
     var pourAmountsO = (water == null) ? null : splitEvenly(water, pours);
-    var notesO = []; for (var n = 0; n < pours; n++) notesO.push('均一に、中心から外側へ注ぐ。');
+    var notesO = []; for (var n2 = 0; n2 < pours; n2++) notesO.push('均一に、中心から外側へ注ぐ。');
     return {
       methodId: m.id, method: m.name, dose: dose, ratio: ratio, water: water,
       flavor: flavorIdToName(draft.flavor), strength: strengthIdToName(draft.strength),
@@ -986,12 +1063,21 @@
 
     var c = computeRecipe(rsState);
     $('rsCoffee').textContent = (c.dose == null) ? '—' : c.dose + 'g';
-    $('rsWater').textContent = (c.water == null) ? '—' : c.water + 'g';
-    $('rsPours').textContent = is46 ? ('2 + ' + (findById(STRENGTHS, rsState.strength) || STRENGTHS[1]).backPours) : c.pours;
-    $('rsInterval').textContent = m.interval;
+    if (c.isIce) {
+      $('rsWater').textContent = (c.hotWater == null) ? '—' : 'Hot ' + c.hotWater + 'g + Ice ' + c.ice + 'g';
+    } else {
+      $('rsWater').textContent = (c.water == null) ? '—' : c.water + 'g';
+    }
+    $('rsPours').textContent = c.pours;
+    $('rsInterval').textContent = c.isHybrid ? 'variable' : m.interval;
     $('rsDraw').textContent = c.drawdown;
     if (is46) {
-      $('rsNote').textContent = '前半2投で味を整え、後半' + (findById(STRENGTHS, rsState.strength) || STRENGTHS[1]).backPours + '投で濃度を調整。';
+      var sObj = findById(STRENGTHS, rsState.strength) || STRENGTHS[1];
+      $('rsNote').textContent = '前半2投（全体の40%）で味を整え、後半' + sObj.backPours + '投（60%）で濃度を調整。';
+    } else if (c.isHybrid) {
+      $('rsNote').textContent = '要：' + m.equipment + '。前半Switch閉じて浸漬、後半Switch開けて透過。';
+    } else if (c.isIce) {
+      $('rsNote').textContent = '氷はサーバー（またはグラス）に入れて準備。Hot ' + (c.hotWater || '—') + 'g で抽出し急冷。Total ' + (c.water || '—') + 'g。';
     } else {
       $('rsNote').textContent = m.descBody;
     }
@@ -1012,22 +1098,48 @@
     var c = computeRecipe(draft);
     $('pvMethod').textContent = c.method;
     $('pvCoffee').textContent = (c.dose == null) ? '—' : c.dose + 'g';
-    $('pvWater').textContent = (c.water == null) ? '—' : c.water + 'g';
+    if (c.isIce) {
+      $('pvWater').textContent = (c.hotWater == null) ? '—' : 'Hot ' + c.hotWater + 'g + Ice ' + c.ice + 'g';
+    } else {
+      $('pvWater').textContent = (c.water == null) ? '—' : c.water + 'g';
+    }
     $('pvRatio').textContent = '1:' + c.ratio;
     $('pvPours').textContent = c.pours;
     $('pvDraw').textContent = c.drawdown;
-    $('pvNote').textContent = c.is46
-      ? ('前半2投で味を整え、後半' + c.backPours + '投で濃度を調整。')
-      : (METHODS[c.methodId].descBody);
+    if (c.is46) {
+      $('pvNote').textContent = '前半2投（全体の40%）で味を整え、後半' + c.backPours + '投（60%）で濃度を調整。';
+    } else if (c.isHybrid) {
+      $('pvNote').textContent = '器具：' + c.equipment + '。前半Switch閉→浸漬、後半Switch開→透過。';
+    } else if (c.isIce) {
+      $('pvNote').textContent = '氷 ' + (c.ice || '—') + 'g をサーバーに入れて準備。Hot ' + (c.hotWater || '—') + 'g を5投で注ぎ急冷。Total ' + (c.water || '—') + 'g。';
+    } else {
+      $('pvNote').textContent = METHODS[c.methodId].descBody;
+    }
     // timeline
     var tl = $('pvTimeline'); tl.innerHTML = '';
     var amounts = c.pourAmounts || [];
     var steps = c.stepTimesSec || [];
     for (var i = 0; i < amounts.length; i++) {
-      tl.appendChild(tlRow((i + 1) + '投目', formatTimeLoose(steps[i]), amounts[i] + 'g', false));
+      var tlLabel, tlAmt;
+      if (c.is46) {
+        tlLabel = (i < 2) ? ('前半' + (i + 1) + '投目') : ('後半' + (i - 1) + '投目');
+      } else if (c.isHybrid) {
+        if (i < 2) { tlLabel = '浸漬' + (i + 1) + '投目（Switch閉）'; }
+        else { tlLabel = (i === 2 ? '透過1投目（Switch開）' : '透過2投目'); }
+      } else {
+        tlLabel = (i + 1) + '投目';
+      }
+      tlAmt = c.isIce ? ('Hot ' + amounts[i] + 'g') : (amounts[i] + 'g');
+      tl.appendChild(tlRow(tlLabel, formatTimeLoose(steps[i]), tlAmt, false));
     }
     tl.appendChild(tlRow('落ち切り目安', c.drawdown, '', true));
-    $('pvRinse').textContent = 'ペーパーを湯通しし、サーバーを温めてから抽出を始めます。';
+    if (c.isIce) {
+      $('pvRinse').textContent = '氷 ' + (c.ice || '—') + 'g をサーバーまたはグラスに入れて準備。ペーパーを湯通しし、サーバーは温めずに使用。';
+    } else if (c.isHybrid) {
+      $('pvRinse').textContent = 'ペーパーを湯通し後、Switch を閉じた状態でセット。前半は浸漬（Switch閉）、後半は透過（Switch開）。';
+    } else {
+      $('pvRinse').textContent = 'ペーパーを湯通しし、サーバーを温めてから抽出を始めます。';
+    }
   };
   function tlRow(label, time, amount, isDraw) {
     var row = document.createElement('div');
@@ -1094,22 +1206,42 @@
     if (isDraw) {
       $('abStep').textContent = '落ち切り確認';
       $('abPour').textContent = 'Wait';
-      $('abTotal').textContent = 'Total ' + activeData.water + 'g / ' + activeData.water + 'g';
-      $('abInstruction').textContent = '落ち切りを確認し、抽出を終了します。';
+      if (activeData.isIce) {
+        $('abTotal').textContent = 'Hot ' + (activeData.hotWater || activeData.water) + 'g 完了（Ice ' + (activeData.ice || '—') + 'g）';
+        $('abInstruction').textContent = '落ち切りを確認。氷の上に抽出液が落ちたら完成。急冷されたら記録へ。';
+      } else {
+        $('abTotal').textContent = 'Total ' + activeData.water + 'g / ' + activeData.water + 'g';
+        $('abInstruction').textContent = '落ち切りを確認し、抽出を終了します。';
+      }
       $('abNext').innerHTML = '<span>Finish</span> / 記録へ';
       btnNext.textContent = 'Finish';
       return;
     }
     btnNext.textContent = 'Next';
     var idx = abStepIndex(elapsedSec);
-    $('abStep').textContent = (idx + 1) + '投目 / ' + total;
+    var stepLabel;
+    if (activeData.is46) {
+      if (idx < 2) { stepLabel = '前半' + (idx + 1) + '投目 / ' + total; }
+      else { stepLabel = '後半' + (idx - 1) + '投目 / ' + total; }
+    } else {
+      stepLabel = (idx + 1) + '投目 / ' + total;
+    }
+    $('abStep').textContent = stepLabel;
     var cur = activeData.pourAmounts[idx], sum = 0;
     for (var i = 0; i <= idx; i++) sum += activeData.pourAmounts[i];
-    $('abPour').textContent = 'Pour ' + cur + 'g';
-    $('abTotal').textContent = 'Total ' + sum + 'g / ' + activeData.water + 'g';
+    if (activeData.isIce) {
+      var hotTotal = activeData.hotWater || activeData.water;
+      $('abPour').textContent = 'Hot ' + cur + 'g';
+      $('abTotal').textContent = 'Hot ' + sum + 'g / ' + hotTotal + 'g（Ice ' + (activeData.ice || '—') + 'g）';
+    } else {
+      $('abPour').textContent = 'Pour ' + cur + 'g';
+      $('abTotal').textContent = 'Total ' + sum + 'g / ' + activeData.water + 'g';
+    }
     $('abInstruction').textContent = activeData.notes[idx] || '';
     if (idx + 1 < total) {
-      $('abNext').innerHTML = '<span>Next</span> ' + formatTimeLoose(activeData.stepTimesSec[idx + 1]) + ' / Pour ' + activeData.pourAmounts[idx + 1] + 'g';
+      var nextAmt = activeData.pourAmounts[idx + 1];
+      var nextLabel = activeData.isIce ? ('Hot ' + nextAmt + 'g') : ('Pour ' + nextAmt + 'g');
+      $('abNext').innerHTML = '<span>Next</span> ' + formatTimeLoose(activeData.stepTimesSec[idx + 1]) + ' / ' + nextLabel;
     } else {
       $('abNext').innerHTML = '<span>Next</span> ' + formatTimeLoose(activeData.drawdownSec) + ' / 落ち切り';
     }
@@ -1149,11 +1281,23 @@
     var a = loadActiveBrew() || computeRecipe(loadBrewDraft());
     $('blMethod').textContent = a.method;
     $('blCoffee').textContent = (a.dose == null ? '—' : a.dose + 'g');
-    $('blWater').textContent = (a.water == null ? '—' : a.water + 'g');
+    if (a.isIce) {
+      $('blWater').textContent = (a.hotWater == null ? '—' : 'Hot ' + a.hotWater + 'g + Ice ' + a.ice + 'g');
+    } else {
+      $('blWater').textContent = (a.water == null ? '—' : a.water + 'g');
+    }
     $('blRatio').textContent = '1:' + a.ratio;
     $('blPours').textContent = a.pours;
     $('blDraw').textContent = a.drawdown;
-    $('blNote').textContent = a.is46 ? ('前半2投で味を整え、後半' + a.backPours + '投で濃度を調整。') : (METHODS[a.methodId] ? METHODS[a.methodId].descBody : '');
+    if (a.is46) {
+      $('blNote').textContent = '前半2投（40%）で味を整え、後半' + a.backPours + '投（60%）で濃度を調整。';
+    } else if (a.isHybrid) {
+      $('blNote').textContent = '器具：' + (a.equipment || 'HARIO Switch系') + '。浸漬×透過ハイブリッド抽出。';
+    } else if (a.isIce) {
+      $('blNote').textContent = '急冷アイス。Hot ' + (a.hotWater || '—') + 'g + Ice ' + (a.ice || '—') + 'g = Total ' + (a.water || '—') + 'g。';
+    } else {
+      $('blNote').textContent = (METHODS[a.methodId] ? METHODS[a.methodId].descBody : '');
+    }
     // reset entry state per brew
     blState = { rating: 4, tags: [], note: '', equipment: { beanGrind: '', dripper: '', temperature: '' } };
     blSaved = false;
@@ -1204,8 +1348,11 @@
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
       createdAt: new Date().toISOString(),
       method: a.method, dose: a.dose, water: a.water, ratio: a.ratio,
+      hotWater: a.hotWater || null, ice: a.ice || null,
+      methodEquipment: a.equipment || null,
       flavor: a.flavor, strength: a.strength, pours: a.pours,
       pourAmounts: (a.pourAmounts || []).slice(), drawdown: a.drawdown,
+      isIce: a.isIce || false, isHybrid: a.isHybrid || false,
       rating: blState.rating, tags: blState.tags.slice(), note: blState.note,
       equipment: { beanGrind: blState.equipment.beanGrind, dripper: blState.equipment.dripper, temperature: blState.equipment.temperature }
     };
