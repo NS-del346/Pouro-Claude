@@ -28,8 +28,10 @@
     --ink:       #1C1612;
     --sub:       #6F6258;
     --border:    #E4D8CC;
-    --accent:    #B07D4F;
-    --cta-bg:    #1C1612;
+    --accent:    #B2593A;
+    --accent-soft: #F6EAE2;
+    --danger:    #B84040;
+    --cta-bg:    #B2593A;
     --cta-ink:   #FFFDF8;
     --font-serif: Georgia, 'Times New Roman', 'Hiragino Mincho ProN', serif;
     --font-sans: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Helvetica Neue', sans-serif;
@@ -71,7 +73,7 @@
     content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
     background:
       radial-gradient(120% 60% at 50% -8%, rgba(255,250,240,0.9) 0%, rgba(245,240,232,0) 58%),
-      radial-gradient(80% 50% at 92% 4%, rgba(176,125,79,0.06) 0%, rgba(245,240,232,0) 52%);
+      radial-gradient(80% 50% at 92% 4%, rgba(178,89,58,0.06) 0%, rgba(245,240,232,0) 52%);
   }
   .amb-line { position: absolute; z-index: 0; pointer-events: none; top: -20px; right: -40px; width: 260px; height: 280px; }
   .amb-line path { fill: none; stroke: var(--accent); stroke-width: 1; opacity: 0.16; }
@@ -161,7 +163,7 @@
   #screen-brewHome .method-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 11px; }
   #screen-brewHome .method { position: relative; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 11px 13px 12px; cursor: pointer; text-align: left; font-family: inherit; transition: box-shadow 140ms ease, transform 140ms ease; box-shadow: 0 1px 2px rgba(28,22,18,0.03); }
   #screen-brewHome .method:hover { box-shadow: 0 4px 12px rgba(28,22,18,0.07); }
-  #screen-brewHome .method.is-active { border-color: var(--accent); box-shadow: 0 6px 16px rgba(176,125,79,0.16); transform: translateY(-1px); }
+  #screen-brewHome .method.is-active { border-color: var(--accent); background: #FCF6F1; box-shadow: 0 6px 16px rgba(178,89,58,0.16); transform: translateY(-1px); }
   #screen-brewHome .method .dot { position: absolute; top: 11px; right: 11px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); opacity: 0; }
   #screen-brewHome .method.is-active .dot { opacity: 1; }
   #screen-brewHome .method .icon { height: 36px; display: flex; align-items: center; }
@@ -169,7 +171,6 @@
   #screen-brewHome .method .icon svg path, #screen-brewHome .method .icon svg circle, #screen-brewHome .method .icon svg line, #screen-brewHome .method .icon svg polyline { stroke: var(--ink); opacity: 0.82; }
   #screen-brewHome .method.is-active .icon svg path, #screen-brewHome .method.is-active .icon svg circle, #screen-brewHome .method.is-active .icon svg line, #screen-brewHome .method.is-active .icon svg polyline { stroke: var(--accent); opacity: 1; }
   #screen-brewHome .method-name { font-size: 18px; font-weight: 600; color: var(--ink); margin-top: 10px; line-height: 1.15; }
-  #screen-brewHome .method[data-id="neo"] .method-name { font-size: 16px; }
   #screen-brewHome .method-sub { font-size: 12.5px; color: var(--sub); margin-top: 4px; }
   #screen-brewHome .desc { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 15px 17px 15px; margin-top: 13px; box-shadow: 0 4px 18px rgba(28,22,18,0.05); }
   #screen-brewHome .desc-title { font-family: var(--font-serif); font-size: 20px; font-weight: 400; color: var(--ink); }
@@ -190,7 +191,7 @@
   #screen-recipeSetup .equip-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
   #screen-recipeSetup .equip-row + .equip-row { border-top: 1px solid var(--border); }
   #screen-recipeSetup .equip-key { flex: 0 0 56px; font-size: 13px; color: var(--sub); }
-  #screen-recipeSetup .equip-select { flex: 1; background: none; border: none; font-family: var(--font-sans); font-size: 14px; color: var(--ink); -webkit-appearance: none; appearance: none; padding: 2px 0; min-width: 0; cursor: pointer; }
+  #screen-recipeSetup .equip-select { flex: 1; background: none; border: none; font-family: var(--font-sans); font-size: 14px; color: var(--ink); -webkit-appearance: none; appearance: none; padding: 2px 18px 2px 0; min-width: 0; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236F6258' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 4px center; background-size: 10px 6px; }
   #screen-recipeSetup .equip-select:focus { outline: none; }
   #screen-recipeSetup .section-label { font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: 0.05em; margin-bottom: 7px; }
   #screen-recipeSetup .pill-row { display: grid; gap: 8px; }
@@ -199,12 +200,12 @@
   #screen-recipeSetup .pill { background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 9px 0; font-family: inherit; font-size: 14px; font-weight: 500; color: var(--ink); cursor: pointer; text-align: center; transition: box-shadow 130ms ease; box-shadow: 0 1px 2px rgba(28,22,18,0.03); }
   #screen-recipeSetup .pill.dose-pill { font-size: 13px; padding: 7px 0; }
   #screen-recipeSetup .pill:hover { box-shadow: 0 3px 8px rgba(28,22,18,0.06); }
-  #screen-recipeSetup .pill.is-active { border-color: var(--accent); border-width: 1.5px; box-shadow: 0 2px 8px rgba(176,125,79,0.14); }
+  #screen-recipeSetup .pill.is-active { background: var(--accent); border-color: var(--accent); color: var(--cta-ink); box-shadow: 0 2px 8px rgba(178,89,58,0.22); }
   #screen-recipeSetup .sub-label { font-size: 12.5px; color: var(--sub); margin-bottom: 5px; }
   #screen-recipeSetup .field + .field { margin-top: 7px; }
   #screen-recipeSetup .stepper { display: grid; grid-template-columns: 56px 1fr 56px; align-items: stretch; background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 2px rgba(28,22,18,0.03); }
   #screen-recipeSetup .step-btn { background: none; border: none; cursor: pointer; font-size: 22px; color: var(--ink); display: flex; align-items: center; justify-content: center; padding: 8px 0; transition: background 120ms ease; }
-  #screen-recipeSetup .step-btn:hover { background: rgba(176,125,79,0.06); }
+  #screen-recipeSetup .step-btn:hover { background: rgba(178,89,58,0.06); }
   #screen-recipeSetup .step-btn:disabled { color: var(--border); cursor: default; }
   #screen-recipeSetup .step-btn:disabled:hover { background: none; }
   #screen-recipeSetup .step-btn.minus { border-right: 1px solid var(--border); }
@@ -217,7 +218,7 @@
   #screen-recipeSetup .stat-label { font-size: 11px; color: var(--sub); letter-spacing: 0.06em; }
   #screen-recipeSetup .stat-value { font-size: 17px; font-weight: 600; color: var(--ink); margin-top: 2px; font-variant-numeric: tabular-nums; }
   #screen-recipeSetup .summary-note { margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--border); font-size: 12px; line-height: 1.55; color: var(--sub); text-align: center; text-wrap: pretty; }
-  #screen-recipeSetup .cta-wrap { margin-top: auto; padding-bottom: 6px; }
+  #screen-recipeSetup .cta-wrap { margin-top: auto; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
   #screen-recipeSetup .cta { border-radius: 13px; padding: 12px; font-size: 15.5px; }
   #screen-recipeSetup .section.is-hidden { display: none; }
 
@@ -243,7 +244,7 @@
   #screen-preview .timeline-title { font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: 0.06em; text-align: center; margin-bottom: 8px; }
   #screen-preview .tl-step { display: grid; grid-template-columns: 22px 1fr auto auto; align-items: center; column-gap: 12px; min-height: 33px; }
   #screen-preview .tl-marker { position: relative; align-self: stretch; }
-  #screen-preview .tl-marker::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1.5px; transform: translateX(-50%); background: rgba(176,125,79,0.35); }
+  #screen-preview .tl-marker::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1.5px; transform: translateX(-50%); background: rgba(178,89,58,0.35); }
   #screen-preview .tl-step:first-child .tl-marker::before { top: 50%; }
   #screen-preview .tl-step:last-child .tl-marker::before { bottom: 50%; }
   #screen-preview .tl-marker::after { content: ""; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); transform: translate(-50%, -50%); }
@@ -252,7 +253,8 @@
   #screen-preview .tl-amount { font-size: 14px; color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; min-width: 38px; text-align: right; }
   #screen-preview .tl-step.is-drawdown .tl-label, #screen-preview .tl-step.is-drawdown .tl-time { color: var(--sub); }
   #screen-preview .tl-step.is-drawdown .tl-marker::after { background: var(--sub); opacity: 0.55; }
-  #screen-preview .rinse { padding: 11px 16px; }
+  #screen-preview .rinse { padding: 11px 16px 12px; }
+  #screen-preview .rinse-title { font-size: 13px; font-weight: 600; color: var(--ink); letter-spacing: 0.05em; margin-bottom: 4px; }
   #screen-preview .rinse p { font-size: 12.5px; line-height: 1.55; color: var(--sub); text-wrap: pretty; }
   #screen-preview .cta-wrap { margin-top: auto; padding-top: 3px; padding-bottom: 6px; flex-shrink: 0; }
   #screen-preview .cta { border-radius: 13px; padding: 14px; letter-spacing: 0.04em; }
@@ -273,11 +275,13 @@
   #screen-activeBrew .ring-fg { fill: none; stroke: var(--accent); stroke-width: 4.5; stroke-linecap: round; }
   #screen-activeBrew .ring-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
   #screen-activeBrew .ring-time { font-size: 52px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1; }
-  #screen-activeBrew .pour-main { font-size: 54px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); margin-top: 22px; line-height: 1; font-variant-numeric: tabular-nums; }
+  #screen-activeBrew .pour-label { font-size: 12.5px; letter-spacing: 0.1em; color: var(--sub); margin-top: 18px; }
+  #screen-activeBrew .pour-main { font-size: 54px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); margin-top: 6px; line-height: 1; font-variant-numeric: tabular-nums; }
   #screen-activeBrew .pour-total { font-size: 19px; color: var(--sub); margin-top: 10px; font-variant-numeric: tabular-nums; }
   #screen-activeBrew .instruction { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 13px 16px; margin-top: 20px; box-shadow: 0 2px 10px rgba(28,22,18,0.04); }
   #screen-activeBrew .instruction p { font-size: 14px; line-height: 1.6; color: var(--ink); text-wrap: pretty; }
   #screen-activeBrew .next-preview { font-size: 13.5px; color: var(--sub); margin-top: 16px; font-variant-numeric: tabular-nums; }
+  #screen-activeBrew .next-preview span { color: var(--accent); font-weight: 600; }
   #screen-activeBrew .controls { position: relative; z-index: 1; flex-shrink: 0; display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 12px; padding: 12px 22px calc(16px + env(safe-area-inset-bottom, 0px)); }
   #screen-activeBrew .ctrl { font-family: var(--font-sans); font-size: 15px; font-weight: 500; letter-spacing: 0.02em; border-radius: 999px; padding: 14px 0; cursor: pointer; transition: opacity 130ms ease, transform 130ms ease, background 130ms ease; }
   #screen-activeBrew .ctrl.outline { background: var(--card); border: 1px solid var(--border); color: var(--ink); }
@@ -319,7 +323,7 @@
   #screen-brewLog .rdot.filled { border-color: var(--accent); background: var(--accent); }
   #screen-brewLog .tags { display: flex; flex-wrap: wrap; gap: 9px; }
   #screen-brewLog .tag { background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 9px 16px; font-family: inherit; font-size: 13.5px; color: var(--ink); cursor: pointer; transition: border-color 120ms ease, color 120ms ease, opacity 120ms ease; }
-  #screen-brewLog .tag.selected { border-color: var(--accent); border-width: 1.5px; color: var(--accent); }
+  #screen-brewLog .tag.selected { background: var(--accent); border-color: var(--accent); color: var(--cta-ink); }
   #screen-brewLog .tag.disabled { opacity: 0.4; cursor: default; }
   #screen-brewLog .note-area { width: 100%; min-height: 92px; resize: vertical; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 13px 14px; font-family: var(--font-sans); font-size: 14px; line-height: 1.6; color: var(--ink); }
   #screen-brewLog .note-area::placeholder { color: var(--sub); opacity: 0.7; }
@@ -351,7 +355,7 @@
   #screen-history .log-list { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
   #screen-history .log-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 17px 19px 18px; cursor: pointer; box-shadow: 0 2px 8px rgba(28,22,18,0.04); transition: box-shadow 130ms ease, transform 130ms ease; }
   #screen-history .log-card:hover { box-shadow: 0 6px 16px rgba(28,22,18,0.08); transform: translateY(-1px); }
-  #screen-history .log-card.recent { border-color: rgba(176,125,79,0.4); box-shadow: 0 5px 16px rgba(176,125,79,0.1); }
+  #screen-history .log-card.recent { border-color: rgba(178,89,58,0.4); box-shadow: 0 5px 16px rgba(178,89,58,0.1); }
   #screen-history .card-date { font-size: 13px; color: var(--sub); font-variant-numeric: tabular-nums; }
   #screen-history .card-line { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 5px; }
   #screen-history .card-method { font-size: 21px; font-weight: 600; color: var(--ink); white-space: nowrap; }
@@ -361,7 +365,7 @@
   #screen-history .card-recipe { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 9px; }
   #screen-history .recipe-summary { font-size: 16px; color: var(--ink); font-variant-numeric: tabular-nums; }
   #screen-history .card-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-  #screen-history .mini-tag { font-size: 13px; color: var(--accent); border: 1px solid rgba(176,125,79,0.5); border-radius: 999px; padding: 4px 13px; white-space: nowrap; }
+  #screen-history .mini-tag { font-size: 13px; color: var(--accent); background: var(--accent-soft); border: 1px solid rgba(178,89,58,0.25); border-radius: 999px; padding: 4px 13px; white-space: nowrap; }
   #screen-history .card-note { font-size: 15px; color: var(--ink); line-height: 1.5; margin-top: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-wrap: pretty; }
   #screen-history .card-equip { font-size: 13px; color: var(--sub); margin-top: 13px; line-height: 1.4; text-wrap: pretty; }
   #screen-history .empty { display: none; background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 44px 28px; margin-top: 18px; text-align: center; box-shadow: 0 2px 8px rgba(28,22,18,0.04); }
@@ -409,12 +413,13 @@
   #screen-settings .clear-row { display: flex; align-items: center; padding: 9px 0 4px; min-height: 44px; cursor: pointer; background: none; border: none; font-family: inherit; width: 100%; text-align: left; -webkit-tap-highlight-color: transparent; }
   #screen-settings .clear-row .k { font-size: 15px; color: var(--accent); }
   #screen-settings .clear-row:hover .k { opacity: 0.78; }
-  #screen-settings .danger-row .k { color: #B84040; }
+  #screen-settings .export-row .k { color: var(--ink); }
+  #screen-settings .danger-row .k { color: var(--danger); }
   #screen-settings .danger-row:hover .k { opacity: 0.78; }
   #screen-settings .st-cycle-row,
   #screen-settings .st-toggle-row { background: none; border: none; font-family: var(--font-sans); width: 100%; cursor: pointer; text-align: left; padding-top: 10px; padding-bottom: 10px; min-height: 44px; align-items: center; border-radius: 8px; -webkit-tap-highlight-color: transparent; transition: background 150ms ease; }
-  #screen-settings .st-cycle-row:hover, #screen-settings .st-toggle-row:hover { background: rgba(176,125,79,0.07); }
-  #screen-settings .st-cycle-row:active, #screen-settings .st-toggle-row:active { background: rgba(176,125,79,0.14); }
+  #screen-settings .st-cycle-row:hover, #screen-settings .st-toggle-row:hover { background: rgba(178,89,58,0.07); }
+  #screen-settings .st-cycle-row:active, #screen-settings .st-toggle-row:active { background: rgba(178,89,58,0.14); }
   #screen-settings .st-cycle-val { font-size: 15px; color: var(--accent); font-variant-numeric: tabular-nums; }
   #screen-settings .settings-hint { font-size: 13px; color: var(--sub); text-align: center; padding: 8px 20px 22px; opacity: 0; transition: opacity 350ms ease; min-height: 40px; }
   #screen-settings .settings-hint.is-visible { opacity: 1; }
@@ -461,14 +466,14 @@
   #screen-historyDetail .eq-input:focus { outline: none; }
   #screen-historyDetail .tags { display: flex; flex-wrap: wrap; gap: 9px; }
   #screen-historyDetail .tag { background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 9px 16px; font-family: inherit; font-size: 13.5px; color: var(--ink); cursor: pointer; transition: border-color 120ms ease, color 120ms ease, opacity 120ms ease; }
-  #screen-historyDetail .tag.selected { border-color: var(--accent); border-width: 1.5px; color: var(--accent); }
+  #screen-historyDetail .tag.selected { background: var(--accent); border-color: var(--accent); color: var(--cta-ink); }
   #screen-historyDetail .tag.disabled { opacity: 0.4; cursor: default; }
   #screen-historyDetail .note-area { width: 100%; min-height: 80px; resize: vertical; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-family: var(--font-sans); font-size: 14px; line-height: 1.6; color: var(--ink); }
   #screen-historyDetail .note-area::placeholder { color: var(--sub); opacity: 0.7; }
   #screen-historyDetail .note-area:focus { outline: none; border-color: var(--accent); }
   #screen-historyDetail .hd-footer { position: relative; z-index: 2; padding: 10px 22px calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 9px; background: linear-gradient(to top, var(--bg) 70%, rgba(245,240,232,0)); }
   #screen-historyDetail .rebrew-btn { display: block; width: 100%; background: var(--card); border: 1.5px solid var(--border); border-radius: 13px; padding: 13px; font-family: var(--font-sans); font-size: 15px; font-weight: 500; color: var(--ink); cursor: pointer; letter-spacing: 0.03em; transition: border-color 130ms ease, background 130ms ease; }
-  #screen-historyDetail .rebrew-btn:hover { border-color: var(--accent); background: rgba(176,125,79,0.04); }
+  #screen-historyDetail .rebrew-btn:hover { border-color: var(--accent); background: rgba(178,89,58,0.04); }
   #screen-historyDetail .rebrew-btn:active { transform: scale(0.99); }
   #screen-historyDetail .cta-hint { text-align: center; font-size: 12px; color: var(--sub); opacity: 0.85; }
   #screen-historyDetail .cta-hint.saved { color: var(--accent); opacity: 1; }
@@ -503,7 +508,7 @@
       <svg class="amb-line" viewBox="0 0 260 280" aria-hidden="true"><path d="M40 -10 C 150 60, 250 120, 210 240"/></svg>
       <header class="header">
         <button class="back" id="rsBack" aria-label="戻る"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12l7 7"/></svg></button>
-        <div class="header-titles"><div class="header-title">Recipe Setup</div><div class="header-sub" id="rsMethod">4:6 Method</div></div>
+        <div class="header-titles"><div class="header-title">レシピ設定</div><div class="header-sub" id="rsMethod">4:6 Method</div></div>
         <div></div>
       </header>
       <div class="content">
@@ -523,7 +528,7 @@
             <div class="field"><div class="sub-label">濃度</div><div class="pill-row triad" id="rsStrength"></div></div>
           </section>
           <section id="rsEquipSection">
-            <div class="section-label">Equipment</div>
+            <div class="section-label">器具</div>
             <div class="equip-card">
               <div class="equip-row">
                 <span class="equip-key">豆</span>
@@ -549,18 +554,18 @@
           </section>
           <section class="summary">
             <div class="summary-grid">
-              <div class="stat"><div class="stat-label">Coffee</div><div class="stat-value" id="rsCoffee">18g</div></div>
-              <div class="stat"><div class="stat-label">Water</div><div class="stat-value" id="rsWater">270g</div></div>
-              <div class="stat"><div class="stat-label">Pours</div><div class="stat-value" id="rsPours">2 + 2</div></div>
+              <div class="stat"><div class="stat-label">コーヒー</div><div class="stat-value" id="rsCoffee">18g</div></div>
+              <div class="stat"><div class="stat-label">お湯</div><div class="stat-value" id="rsWater">270g</div></div>
+              <div class="stat"><div class="stat-label">注湯</div><div class="stat-value" id="rsPours">2 + 2</div></div>
             </div>
             <div class="summary-grid2">
-              <div class="stat"><div class="stat-label">Interval</div><div class="stat-value" id="rsInterval">45s</div></div>
-              <div class="stat"><div class="stat-label">Drawdown</div><div class="stat-value" id="rsDraw">3:30</div></div>
+              <div class="stat"><div class="stat-label">間隔</div><div class="stat-value" id="rsInterval">45s</div></div>
+              <div class="stat"><div class="stat-label">落ち切り</div><div class="stat-value" id="rsDraw">3:30</div></div>
             </div>
             <div class="summary-note" id="rsNote">前半2投で味を整え、後半2投で濃度を調整。</div>
           </section>
         </div>
-        <div class="cta-wrap"><button class="cta" id="rsCta">レシピを確認する</button></div>
+        <div class="cta-wrap"><button class="cta" id="rsCta">レシピを確認</button></div>
       </div>
     </section>
 
@@ -570,19 +575,19 @@
       <svg class="amb-line" viewBox="0 0 260 280" aria-hidden="true"><path d="M40 -10 C 150 60, 250 120, 210 240"/></svg>
       <header class="header">
         <button class="back" id="pvBack" aria-label="戻る"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12l7 7"/></svg></button>
-        <div class="header-titles"><div class="header-title">Preview</div><div class="header-sub" id="pvMethod">4:6 Method</div></div>
+        <div class="header-titles"><div class="header-title">プレビュー</div><div class="header-sub" id="pvMethod">4:6 Method</div></div>
         <div></div>
       </header>
       <div class="content">
         <section class="card summary">
           <div class="summary-grid">
-            <div class="stat"><div class="stat-label">Coffee</div><div class="stat-value" id="pvCoffee"></div></div>
-            <div class="stat"><div class="stat-label">Water</div><div class="stat-value" id="pvWater"></div></div>
-            <div class="stat"><div class="stat-label">Ratio</div><div class="stat-value" id="pvRatio"></div></div>
+            <div class="stat"><div class="stat-label">コーヒー</div><div class="stat-value" id="pvCoffee"></div></div>
+            <div class="stat"><div class="stat-label">お湯</div><div class="stat-value" id="pvWater"></div></div>
+            <div class="stat"><div class="stat-label">比率</div><div class="stat-value" id="pvRatio"></div></div>
           </div>
           <div class="summary-grid2">
-            <div class="stat"><div class="stat-label">Pours</div><div class="stat-value" id="pvPours"></div></div>
-            <div class="stat"><div class="stat-label">Drawdown</div><div class="stat-value" id="pvDraw"></div></div>
+            <div class="stat"><div class="stat-label">注湯</div><div class="stat-value" id="pvPours"></div></div>
+            <div class="stat"><div class="stat-label">落ち切り</div><div class="stat-value" id="pvDraw"></div></div>
           </div>
           <div class="summary-note" id="pvNote"></div>
         </section>
@@ -590,8 +595,8 @@
           <div class="timeline-title">注湯タイムライン</div>
           <div class="timeline" id="pvTimeline"></div>
         </section>
-        <section class="card rinse"><p id="pvRinse"></p></section>
-        <div class="cta-wrap"><button class="cta" id="pvCta">抽出を開始する</button></div>
+        <section class="card rinse"><div class="rinse-title">抽出前の確認</div><p id="pvRinse"></p></section>
+        <div class="cta-wrap"><button class="cta" id="pvCta">抽出を開始</button></div>
       </div>
     </section>
 
@@ -599,7 +604,7 @@
     <section class="screen" id="screen-activeBrew" data-screen-label="Active Brew">
       <svg class="amb-line" viewBox="0 0 375 667" aria-hidden="true" preserveAspectRatio="xMidYMid slice"><path d="M250 -20 C 360 120, 300 260, 410 360"/><path d="M-30 120 C 140 260, 60 440, 220 560 C 300 620, 360 600, 420 660"/><path d="M340 40 C 300 110, 360 160, 330 230"/></svg>
       <header class="header">
-        <button class="back" id="abBack" aria-label="Previewへ戻る"><span class="ico ico-ui-back" style="width:22px;height:22px"></span></button>
+        <button class="back" id="abBack" aria-label="プレビューへ戻る"><span class="ico ico-ui-back" style="width:22px;height:22px"></span></button>
         <div class="header-titles"><div class="header-title" id="abMethod">4:6 Method</div><div class="header-sub" id="abStep">3投目 / 4</div></div>
         <div></div>
       </header>
@@ -608,15 +613,16 @@
           <svg viewBox="0 0 208 208"><circle class="ring-bg" cx="104" cy="104" r="96"></circle><circle class="ring-fg" id="abRing" cx="104" cy="104" r="96"></circle></svg>
           <div class="ring-center"><div class="ring-time" id="abTime">00:00</div></div>
         </div>
-        <div class="pour-main" id="abPour">Pour 0g</div>
-        <div class="pour-total" id="abTotal">Total 0g / 0g</div>
+        <div class="pour-label">今回の注湯</div>
+        <div class="pour-main" id="abPour">0g</div>
+        <div class="pour-total" id="abTotal">合計 0g / 0g</div>
         <div class="instruction"><p id="abInstruction"></p></div>
         <div class="next-preview" id="abNext"></div>
       </div>
       <div class="controls">
-        <button class="ctrl outline" id="abBtnBack">Back</button>
-        <button class="ctrl primary" id="abBtnPause">Pause</button>
-        <button class="ctrl outline" id="abBtnNext">Next</button>
+        <button class="ctrl outline" id="abBtnBack">戻る</button>
+        <button class="ctrl primary" id="abBtnPause">一時停止</button>
+        <button class="ctrl outline" id="abBtnNext">次へ</button>
       </div>
     </section>
 
@@ -625,27 +631,27 @@
       <svg class="amb-line" viewBox="0 0 220 667" aria-hidden="true" preserveAspectRatio="xMidYMid slice"><path d="M180 -20 C 120 160, 200 320, 150 500 C 130 580, 170 620, 140 700"/><path d="M250 40 C 200 180, 260 340, 210 520"/></svg>
       <div class="scroll-content">
         <header>
-          <button class="back" id="blBack" aria-label="Active Brewへ戻る"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12l7 7"/></svg></button>
-          <div class="header-title">Brew Log</div>
+          <button class="back" id="blBack" aria-label="タイマーへ戻る"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12l7 7"/></svg></button>
+          <div class="header-title">抽出記録</div>
           <div class="header-sub" id="blMethod">4:6 Method</div>
         </header>
         <section class="summary">
           <div class="summary-row three">
-            <div class="s-item"><span class="s-key">Coffee</span> <span id="blCoffee"></span></div>
-            <div class="s-item"><span class="s-key">Water</span> <span id="blWater"></span></div>
-            <div class="s-item"><span class="s-key">Ratio</span> <span id="blRatio"></span></div>
+            <div class="s-item"><span class="s-key">コーヒー</span> <span id="blCoffee"></span></div>
+            <div class="s-item"><span class="s-key">お湯</span> <span id="blWater"></span></div>
+            <div class="s-item"><span class="s-key">比率</span> <span id="blRatio"></span></div>
           </div>
           <div class="summary-row two">
-            <div class="s-item"><span class="s-key">Pours</span> <span id="blPours"></span></div>
-            <div class="s-item" style="grid-column: span 2;"><span class="s-key">Drawdown</span> <span id="blDraw"></span></div>
+            <div class="s-item"><span class="s-key">注湯</span> <span id="blPours"></span></div>
+            <div class="s-item" style="grid-column: span 2;"><span class="s-key">落ち切り</span> <span id="blDraw"></span></div>
           </div>
           <div class="summary-note" id="blNote"></div>
         </section>
         <section class="section"><div class="section-label">評価</div><div class="rating" id="blRating"></div></section>
-        <section class="section"><div class="section-label">味の印象</div><div class="tags" id="blTags"></div><div class="hint">味タグは3つまで</div></section>
-        <section class="section"><div class="section-label">次回メモ</div><textarea class="note-area" id="blNoteInput" placeholder="次回はどこを変えるかメモする"></textarea></section>
+        <section class="section"><div class="section-label">テイスト</div><div class="tags" id="blTags"></div><div class="hint">味タグは3つまで</div></section>
+        <section class="section"><div class="section-label">次回の調整</div><textarea class="note-area" id="blNoteInput" placeholder="次回変える条件をメモする"></textarea></section>
         <section class="section">
-          <div class="section-label">器具情報</div>
+          <div class="section-label">抽出の詳細</div>
           <div class="equipment">
             <div class="eq-row"><label class="eq-key" for="blBean">豆 / 挽き目</label><input class="eq-input" id="blBean" type="text" autocomplete="off"></div>
             <div class="eq-row"><label class="eq-key" for="blDripper">ドリッパー</label><input class="eq-input" id="blDripper" type="text" autocomplete="off"></div>
@@ -655,7 +661,7 @@
         <div style="height: 8px;"></div>
       </div>
       <div class="save-footer">
-        <button class="cta" id="blSave">記録を保存する</button>
+        <button class="cta" id="blSave">記録を保存</button>
         <div class="cta-hint" id="blHint">保存すると履歴に追加されます</div>
       </div>
     </section>
@@ -665,11 +671,11 @@
       <div class="amb-glow"></div>
       <svg class="amb-line" viewBox="0 0 200 667" aria-hidden="true" preserveAspectRatio="xMidYMid slice"><path d="M160 -20 C 110 160, 180 320, 130 500 C 110 580, 150 620, 120 700"/><path d="M220 40 C 180 180, 230 340, 190 520"/></svg>
       <div class="scroll-content">
-        <header><h1 class="page-title">History</h1><p class="page-sub">前回の一杯から、次の調整へ</p></header>
+        <header><h1 class="page-title">履歴</h1><p class="page-sub">抽出の記録</p></header>
         <section class="summary" id="hsSummary">
-          <div class="sum-item"><div class="sum-key">Total logs</div><div class="sum-val" id="hsTotal">0</div></div>
-          <div class="sum-item"><div class="sum-key">Last brew</div><div class="sum-val method" id="hsLast">—</div></div>
-          <div class="sum-item"><div class="sum-key">Avg rating</div><div class="sum-val" id="hsAvg">—</div></div>
+          <div class="sum-item"><div class="sum-key">記録</div><div class="sum-val" id="hsTotal">0</div></div>
+          <div class="sum-item"><div class="sum-key">前回</div><div class="sum-val method" id="hsLast">—</div></div>
+          <div class="sum-item"><div class="sum-key">平均評価</div><div class="sum-val" id="hsAvg">—</div></div>
         </section>
         <div class="log-list" id="hsList"></div>
         <div class="empty" id="hsEmpty">
@@ -686,7 +692,7 @@
       <svg class="amb-line" viewBox="0 0 200 667" aria-hidden="true" preserveAspectRatio="xMidYMid slice"><path d="M160 -20 C 110 160, 180 320, 130 500 C 110 580, 150 620, 120 700"/><path d="M220 40 C 180 180, 230 340, 190 520"/></svg>
       <header class="header">
         <button class="back" id="hdBack" aria-label="履歴へ戻る"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12l7 7"/></svg></button>
-        <div class="header-titles"><div class="header-title">抽出記録</div><div class="header-sub">前回の条件とメモ</div></div>
+        <div class="header-titles"><div class="header-title">記録の詳細</div><div class="header-sub">前回の条件とメモ</div></div>
         <div></div>
       </header>
       <div class="scroll-content">
@@ -719,21 +725,21 @@
       <div class="amb-glow"></div>
       <svg class="amb-line" viewBox="0 0 240 667" aria-hidden="true" preserveAspectRatio="xMidYMid slice"><path d="M180 -20 C 120 160, 200 320, 150 500 C 130 580, 175 620, 150 700"/><path d="M220 30 C 175 180, 235 340, 195 520"/></svg>
       <div class="scroll-content">
-        <header><h1 class="page-title">Settings</h1><p class="page-sub">抽出の基準を、静かに整える</p></header>
+        <header><h1 class="page-title">設定</h1><p class="page-sub">抽出環境を整える</p></header>
         <section class="card">
-          <div class="card-title">Default brew</div>
+          <div class="card-title">初期レシピ</div>
           <div class="st-select-row">
-            <span class="k">Method</span>
-            <select id="stMethodSel" class="st-select" aria-label="Method">
+            <span class="k">メソッド</span>
+            <select id="stMethodSel" class="st-select" aria-label="メソッド">
               <option>4:6 Method</option>
               <option>Hybrid</option>
-              <option>THE NEO BREW</option>
+              <option>10 Pour</option>
               <option>Ice Brew</option>
             </select>
           </div>
           <div class="st-select-row">
-            <span class="k">Coffee</span>
-            <select id="stDoseSel" class="st-select" aria-label="Coffee">
+            <span class="k">豆量</span>
+            <select id="stDoseSel" class="st-select" aria-label="豆量">
               <option value="18">18g</option>
               <option value="24">24g</option>
               <option value="30">30g</option>
@@ -742,70 +748,70 @@
             </select>
           </div>
           <div class="st-select-row">
-            <span class="k">Ratio</span>
-            <select id="stRatioSel" class="st-select" aria-label="Ratio">
+            <span class="k">比率</span>
+            <select id="stRatioSel" class="st-select" aria-label="比率">
               <option value="14">1:14</option>
               <option value="15">1:15</option>
               <option value="16">1:16</option>
             </select>
           </div>
           <div class="st-select-row">
-            <span class="k">Flavor</span>
-            <select id="stFlavorSel" class="st-select" aria-label="Flavor">
+            <span class="k">味の方向</span>
+            <select id="stFlavorSel" class="st-select" aria-label="味の方向">
               <option>より甘く</option>
               <option>ベーシック</option>
               <option>より明るく</option>
             </select>
           </div>
           <div class="st-select-row">
-            <span class="k">Strength</span>
-            <select id="stStrengthSel" class="st-select" aria-label="Strength">
+            <span class="k">濃度</span>
+            <select id="stStrengthSel" class="st-select" aria-label="濃度">
               <option>軽め</option>
               <option>標準</option>
               <option>しっかり</option>
             </select>
           </div>
-          <div class="card-note">新しい抽出を始めるときの初期値です。<br>既存の抽出設定が残っている場合は、Recipe Setupの値が優先されます。</div>
+          <div class="card-note">新しい抽出を始めるときの初期値です。<br>既存の抽出設定が残っている場合は、レシピ設定の値が優先されます。</div>
         </section>
         <section class="card">
-          <div class="card-title">Brew assist</div>
+          <div class="card-title">抽出アシスト</div>
           <label class="st-switch-row" for="stScreenChk">
-            <span class="k">Keep screen awake</span>
+            <span class="k">画面を常時点灯</span>
             <span class="st-switch">
-              <input type="checkbox" id="stScreenChk" role="switch" aria-label="Keep screen awake">
+              <input type="checkbox" id="stScreenChk" role="switch" aria-label="画面を常時点灯">
               <span class="st-switch-slider"></span>
             </span>
           </label>
           <label class="st-switch-row" for="stSoundChk">
-            <span class="k">Sound cues</span>
+            <span class="k">サウンド</span>
             <span class="st-switch">
-              <input type="checkbox" id="stSoundChk" role="switch" aria-label="Sound cues">
+              <input type="checkbox" id="stSoundChk" role="switch" aria-label="サウンド">
               <span class="st-switch-slider"></span>
             </span>
           </label>
           <label class="st-switch-row" for="stHapticChk">
-            <span class="k">Haptic cues</span>
+            <span class="k">バイブレーション</span>
             <span class="st-switch">
-              <input type="checkbox" id="stHapticChk" role="switch" aria-label="Haptic cues">
+              <input type="checkbox" id="stHapticChk" role="switch" aria-label="バイブレーション">
               <span class="st-switch-slider"></span>
             </span>
           </label>
           <div class="card-note">端末やブラウザにより一部の補助機能は制限されます。</div>
         </section>
         <section class="card">
-          <div class="card-title">Data</div>
-          <div class="row"><span class="k">Storage</span><span class="v">This device only</span></div>
-          <div class="row"><span class="k">History logs</span><span class="v" id="stCount">0</span></div>
-          <button class="clear-row" id="stExportJSON"><span class="k">JSONを書き出す</span></button>
-          <button class="clear-row" id="stExportCSV"><span class="k">CSVを書き出す</span></button>
-          <button class="clear-row" id="stClear"><span class="k">履歴をすべて削除</span></button>
+          <div class="card-title">データ</div>
+          <div class="row"><span class="k">保存先</span><span class="v">この端末のみ</span></div>
+          <div class="row"><span class="k">履歴件数</span><span class="v" id="stCount">0</span></div>
+          <button class="clear-row export-row" id="stExportJSON"><span class="k">JSONを書き出す</span></button>
+          <button class="clear-row export-row" id="stExportCSV"><span class="k">CSVを書き出す</span></button>
           <button class="clear-row" id="stResetBrew"><span class="k">現在の抽出をリセット</span></button>
           <button class="clear-row" id="stResetSettings"><span class="k">設定を初期値に戻す</span></button>
+          <button class="clear-row danger-row" id="stClear"><span class="k">履歴をすべて削除</span></button>
           <button class="clear-row danger-row" id="stClearAll"><span class="k">すべてのデータを削除</span></button>
           <div class="card-note">記録はこの端末のブラウザ内に保存されます</div>
         </section>
         <section class="card">
-          <div class="card-title">About</div>
+          <div class="card-title">アプリ情報</div>
           <div class="about-logo">pourō</div>
           <div class="about-tag">Pour slowly. Brew deeply.</div>
           <div class="about-line">Version 0.1.0</div>
@@ -820,15 +826,15 @@
     <nav class="tabbar" id="tabbar">
       <button class="tab" id="tabBrew" data-tab="brew">
         <span class="ico ico-ui-brew"></span>
-        <span>Brew</span>
+        <span>抽出</span>
       </button>
       <button class="tab" id="tabHistory" data-tab="history">
         <span class="ico ico-ui-history"></span>
-        <span>History</span>
+        <span>履歴</span>
       </button>
       <button class="tab" id="tabSettings" data-tab="settings">
         <span class="ico ico-ui-settings"></span>
-        <span>Settings</span>
+        <span>設定</span>
       </button>
     </nav>
 
@@ -874,8 +880,8 @@
       icon: '<svg viewBox="0 0 36 36" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="34" height="34" aria-hidden="true"><path d="M 6,8 L 30,8 L 24,23 L 12,23 Z"/><line x1="18" y1="23" x2="18" y2="26"/><line x1="13" y1="29" x2="23" y2="29"/><circle cx="18" cy="29" r="2.2"/><line x1="18" y1="31.2" x2="18" y2="34"/></svg>'
     },
     'neo': {
-      id: 'neo', name: 'THE NEO BREW', sub: '高濃度＋加水',
-      descTitle: 'THE NEO BREW',
+      id: 'neo', name: '10 Pour', sub: '高濃度＋加水',
+      descTitle: '10 Pour',
       descBody: '高濃度で引き出し、加水で仕上げる10投式。1投目後は30秒置き、2投目以降は15秒リズム。注湯量とテンポを優先。',
       pours: 10, interval: '15s', intervalSec: 15, draw: '3:30', drawSec: 210,
       icon: '<svg viewBox="0 0 36 36" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="34" height="34" aria-hidden="true"><line x1="7" y1="6" x2="7" y2="10"/><line x1="11" y1="4" x2="11" y2="10"/><line x1="15" y1="3" x2="15" y2="10"/><line x1="18" y1="2" x2="18" y2="10"/><line x1="21" y1="3" x2="21" y2="10"/><line x1="25" y1="4" x2="25" y2="10"/><line x1="29" y1="6" x2="29" y2="10"/><path d="M 6,11 L 30,11 L 24,27 L 12,27 Z"/><line x1="18" y1="27" x2="18" y2="33"/></svg>'
@@ -904,7 +910,10 @@
   var RATIO_MIN = 12, RATIO_MAX = 18;
 
   /* name <-> id maps (pouroSettings stores display names) */
-  function methodNameToId(n) { for (var k in METHODS) if (METHODS[k].name === n) return k; return 'yon-roku'; }
+  function methodNameToId(n) {
+    if (n === 'THE NEO BREW') return 'neo'; // legacy display label (pre 10 Pour rename)
+    for (var k in METHODS) if (METHODS[k].name === n) return k; return 'yon-roku';
+  }
   function flavorIdToName(id) { var f = findById(FLAVORS, id); return f ? f.label : 'ベーシック'; }
   function flavorNameToId(n) { for (var i = 0; i < FLAVORS.length; i++) if (FLAVORS[i].label === n) return FLAVORS[i].id; return 'balanced'; }
   function strengthIdToName(id) { var s = findById(STRENGTHS, id); return s ? s.label : '標準'; }
@@ -1144,7 +1153,7 @@
   /* ===================================================================
      SCREEN MANAGEMENT
      =================================================================== */
-  var TAB_HIDDEN = { activeBrew: true, brewLog: true };
+  var TAB_HIDDEN = { recipeSetup: true, preview: true, activeBrew: true, brewLog: true, historyDetail: true };
   var TAB_ACTIVE = { brewHome: 'brew', recipeSetup: 'brew', preview: 'brew', history: 'history', historyDetail: 'history', settings: 'settings' };
   var RENDERERS = {};
   var currentScreen = null;
@@ -1329,7 +1338,7 @@
       $('rsWater').textContent = (c.water == null) ? '—' : c.water + 'g';
     }
     $('rsPours').textContent = c.pours;
-    $('rsInterval').textContent = c.isHybrid ? 'variable' : m.interval;
+    $('rsInterval').textContent = c.isHybrid ? '可変' : m.interval;
     $('rsDraw').textContent = c.drawdown;
     if (is46) {
       var sObj = findById(STRENGTHS, rsState.strength) || STRENGTHS[1];
@@ -1463,7 +1472,7 @@
     $('abRing').style.strokeDasharray = RING_C.toFixed(2);
     $('abMethod').textContent = activeData.method;
     brewState.baseElapsedMs = 0; brewState.runStartPerf = performance.now(); brewState.isPaused = false;
-    $('abBtnPause').textContent = 'Pause';
+    $('abBtnPause').textContent = '一時停止';
     stopActiveTimer();
     abLoop();
   };
@@ -1479,19 +1488,19 @@
     var btnNext = $('abBtnNext');
     if (isDraw) {
       $('abStep').textContent = '落ち切り確認';
-      $('abPour').textContent = 'Wait';
+      $('abPour').textContent = '待機';
       if (activeData.isIce) {
-        $('abTotal').textContent = 'Hot ' + (activeData.hotWater || activeData.water) + 'g done (Ice ' + (activeData.ice || '—') + 'g)';
+        $('abTotal').textContent = 'Hot ' + (activeData.hotWater || activeData.water) + 'g / Ice ' + (activeData.ice || '—') + 'g';
         $('abInstruction').textContent = '落ち切りを確認。氷の上に抽出液が落ちたら完成。急冷されたら記録へ。';
       } else {
-        $('abTotal').textContent = 'Total ' + activeData.water + 'g / ' + activeData.water + 'g';
+        $('abTotal').textContent = '合計 ' + activeData.water + 'g / ' + activeData.water + 'g';
         $('abInstruction').textContent = '落ち切りを確認し、抽出を終了します。';
       }
-      $('abNext').innerHTML = '<span>Finish</span> / 記録へ';
-      btnNext.textContent = 'Finish';
+      $('abNext').innerHTML = '<span>次</span> 記録へ';
+      btnNext.textContent = '記録へ';
       return;
     }
-    btnNext.textContent = 'Next';
+    btnNext.textContent = '次へ';
     var idx = abStepIndex(elapsedSec);
     var stepLabel;
     if (activeData.is46) {
@@ -1508,16 +1517,16 @@
       $('abPour').textContent = 'Hot ' + cur + 'g';
       $('abTotal').textContent = 'Hot ' + sum + 'g / ' + hotTotal + 'g (Ice ' + (activeData.ice || '—') + 'g)';
     } else {
-      $('abPour').textContent = 'Pour ' + cur + 'g';
-      $('abTotal').textContent = 'Total ' + sum + 'g / ' + activeData.water + 'g';
+      $('abPour').textContent = cur + 'g';
+      $('abTotal').textContent = '合計 ' + sum + 'g / ' + activeData.water + 'g';
     }
     $('abInstruction').textContent = activeData.notes[idx] || '';
     if (idx + 1 < total) {
       var nextAmt = activeData.pourAmounts[idx + 1];
-      var nextLabel = activeData.isIce ? ('Hot ' + nextAmt + 'g') : ('Pour ' + nextAmt + 'g');
-      $('abNext').innerHTML = '<span>Next</span> ' + formatTimeLoose(activeData.stepTimesSec[idx + 1]) + ' / ' + nextLabel;
+      var nextLabel = activeData.isIce ? ('Hot ' + nextAmt + 'g') : (nextAmt + 'g');
+      $('abNext').innerHTML = '<span>次</span> ' + formatTimeLoose(activeData.stepTimesSec[idx + 1]) + ' / ' + nextLabel;
     } else {
-      $('abNext').innerHTML = '<span>Next</span> ' + formatTimeLoose(activeData.drawdownSec) + ' / 落ち切り';
+      $('abNext').innerHTML = '<span>次</span> ' + formatTimeLoose(activeData.drawdownSec) + ' / 落ち切り';
     }
   }
   $('abBack').addEventListener('click', function () { showScreen('preview'); });
@@ -1540,8 +1549,8 @@
     abRenderTick();
   });
   $('abBtnPause').addEventListener('click', function () {
-    if (brewState.isPaused) { abResume(); $('abBtnPause').textContent = 'Pause'; }
-    else { abPause(); $('abBtnPause').textContent = 'Resume'; }
+    if (brewState.isPaused) { abResume(); $('abBtnPause').textContent = '一時停止'; }
+    else { abPause(); $('abBtnPause').textContent = '再開'; }
   });
 
   /* ===================================================================
@@ -1768,15 +1777,15 @@
 
     var r1 = document.createElement('div'); r1.className = 'snap-row';
     r1.innerHTML =
-      '<div class="snap-stat"><div class="snap-label">Coffee</div><div class="snap-value">' + escapeHtml(e.dose != null ? e.dose + 'g' : '—') + '</div></div>' +
-      '<div class="snap-stat"><div class="snap-label">Water</div><div class="snap-value">' + waterHtml + '</div></div>' +
-      '<div class="snap-stat"><div class="snap-label">Ratio</div><div class="snap-value">' + escapeHtml(e.ratio != null ? '1:' + e.ratio : '—') + '</div></div>';
+      '<div class="snap-stat"><div class="snap-label">コーヒー</div><div class="snap-value">' + escapeHtml(e.dose != null ? e.dose + 'g' : '—') + '</div></div>' +
+      '<div class="snap-stat"><div class="snap-label">お湯</div><div class="snap-value">' + waterHtml + '</div></div>' +
+      '<div class="snap-stat"><div class="snap-label">比率</div><div class="snap-value">' + escapeHtml(e.ratio != null ? '1:' + e.ratio : '—') + '</div></div>';
     el.appendChild(r1);
 
     var r2 = document.createElement('div'); r2.className = 'snap-row two';
     r2.innerHTML =
-      '<div class="snap-stat"><div class="snap-label">Pours</div><div class="snap-value">' + escapeHtml(e.pours || '—') + '</div></div>' +
-      '<div class="snap-stat"><div class="snap-label">Drawdown</div><div class="snap-value">' + escapeHtml(e.drawdown || '—') + '</div></div>';
+      '<div class="snap-stat"><div class="snap-label">注湯</div><div class="snap-value">' + escapeHtml(e.pours || '—') + '</div></div>' +
+      '<div class="snap-stat"><div class="snap-label">落ち切り</div><div class="snap-value">' + escapeHtml(e.drawdown || '—') + '</div></div>';
     el.appendChild(r2);
 
     var noteText = '';
@@ -1910,7 +1919,7 @@
   /* ===================================================================
      7) SETTINGS
      =================================================================== */
-  var ST_METHODS   = ['4:6 Method', 'Hybrid', 'THE NEO BREW', 'Ice Brew'];
+  var ST_METHODS   = ['4:6 Method', 'Hybrid', '10 Pour', 'Ice Brew'];
   var ST_DOSES     = [18, 24, 30, 36, 48];
   var ST_RATIOS    = [14, 15, 16];
   var ST_FLAVORS   = FLAVORS.map(function (f) { return f.label; });
@@ -1918,7 +1927,7 @@
 
   RENDERERS.settings = function () {
     var s = readSettings(), db = s.defaultBrew, ba = s.brewAssist;
-    $('stMethodSel').value = db.method;
+    $('stMethodSel').value = (db.method === 'THE NEO BREW') ? '10 Pour' : db.method; // legacy label → current display label
     $('stDoseSel').value = String(db.dose);
     $('stRatioSel').value = String(db.ratio);
     $('stFlavorSel').value = db.flavor;
