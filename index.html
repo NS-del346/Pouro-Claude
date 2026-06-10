@@ -828,7 +828,7 @@
         flavorId: f.id, strengthId: s.id,
         frontWater: frontWater, backWater: backWater, firstPour: firstPour, secondPour: secondPour,
         backPours: s.backPours, totalPours: total, backPourAmounts: backPourAmounts, pourAmounts: pourAmounts,
-        pours: '前半2 + 後半' + s.backPours, interval: '45s', intervalSec: 45,
+        pours: '2 + ' + s.backPours, interval: '45s', intervalSec: 45,
         drawdown: (s.id === 'light' ? '3:00' : s.id === 'strong' ? '4:00' : '3:30'),
         drawdownSec: (s.id === 'light' ? 180 : s.id === 'strong' ? 240 : 210),
         stepTimesSec: steps, notes: build46Notes(s.backPours), is46: true
