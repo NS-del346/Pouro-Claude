@@ -1449,10 +1449,13 @@
     var entry = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
       createdAt: new Date().toISOString(),
-      method: a.method, dose: a.dose, water: a.water, ratio: a.ratio,
+      method: a.method, methodId: a.methodId || methodNameToId(a.method || ''),
+      dose: a.dose, water: a.water, ratio: a.ratio,
       hotWater: a.hotWater || null, ice: a.ice || null,
       methodEquipment: a.equipment || null,
-      flavor: a.flavor, strength: a.strength, pours: a.pours,
+      flavor: a.flavor, flavorId: a.flavorId || flavorNameToId(a.flavor || ''),
+      strength: a.strength, strengthId: a.strengthId || strengthNameToId(a.strength || ''),
+      pours: a.pours,
       pourAmounts: (a.pourAmounts || []).slice(), drawdown: a.drawdown,
       isIce: a.isIce || false, isHybrid: a.isHybrid || false,
       rating: blState.rating, tags: blState.tags.slice(), note: blState.note,
@@ -1528,7 +1531,7 @@
     var el = $('hdSnap'); el.innerHTML = '';
     var isIce = !!(e.isIce);
     var isHybrid = !!(e.isHybrid);
-    var methodId = methodNameToId(e.method || '');
+    var methodId = e.methodId || methodNameToId(e.method || '');
     var waterLabel = isIce && e.hotWater != null
       ? ('湯 ' + e.hotWater + 'g + 氷 ' + (e.ice != null ? e.ice : '—') + 'g')
       : (e.water != null ? e.water + 'g' : '—');
@@ -1626,11 +1629,28 @@
   $('hdRebrew').addEventListener('click', function () {
     if (!selectedEntry) return;
     var e = selectedEntry;
-    var methodId = methodNameToId(e.method || '') || 'yon-roku';
-    var dose = (typeof e.dose === 'number') ? e.dose : DEFAULT_SETTINGS.defaultBrew.dose;
-    var ratio = (typeof e.ratio === 'number') ? e.ratio : DEFAULT_SETTINGS.defaultBrew.ratio;
-    var flavorId = flavorNameToId(e.flavor || '') || 'balanced';
-    var strengthId = strengthNameToId(e.strength || '') || 'standard';
+    var defaults = readSettings().defaultBrew;
+
+    var methodId =
+      e.methodId ||
+      methodNameToId(e.method || defaults.method || '4:6 Method');
+
+    var dose =
+      (typeof e.dose === 'number') ? e.dose :
+      (typeof defaults.dose === 'number' ? defaults.dose : 18);
+
+    var ratio =
+      (typeof e.ratio === 'number') ? e.ratio :
+      (typeof defaults.ratio === 'number' ? defaults.ratio : 15);
+
+    var flavorId =
+      e.flavorId ||
+      flavorNameToId(e.flavor || defaults.flavor || 'ベーシック');
+
+    var strengthId =
+      e.strengthId ||
+      strengthNameToId(e.strength || defaults.strength || 'しっかり');
+
     saveBrewDraft({ method: methodId, dose: dose, ratio: ratio, flavor: flavorId, strength: strengthId });
     showScreen('recipeSetup');
   });
