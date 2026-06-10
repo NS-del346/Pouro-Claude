@@ -693,7 +693,7 @@
     'ice': {
       id: 'ice', name: 'Ice Brew', sub: '急冷アイス',
       descTitle: 'Ice Brew',
-      descBody: '氷で急冷し、香りを閉じ込めるアイスコーヒー。Hot waterとIceを分けて管理。Timerの累計はHot waterの累計。仕上がり量は氷の融け具合による。',
+      descBody: '氷で急冷し、香りを閉じ込めるアイスコーヒー。抽出に使う湯量と氷量を分けて管理します。タイマーの累計は、実際に注いだ湯量のみを表示します。仕上がり量は氷の溶け方で変わります。',
       pours: 5, interval: '30s', intervalSec: 30, draw: '3:00', drawSec: 180,
       icon: '<span class="ico ico-method-ice"></span>'
     }
@@ -884,11 +884,11 @@
       for (var ij = 0; ij < iPours; ij++) iSteps.push(ij * 30);
       var iAmounts = (iHot == null) ? null : splitEvenly(iHot, iPours);
       var iNotes = [
-        '氷をサーバー（またはグラス）に入れておく。Hot湯を蒸らし注湯。中心から外側へ。',
-        '2投目：Hot湯をリズムよく注ぐ。30秒ごとに注湯。',
-        '3投目：Hot湯を注ぐ。落ち着いて均一に。',
-        '4投目：Hot湯を注ぐ。',
-        '5投目：最終Hot湯注湯。均一に仕上げる。'
+        '氷をサーバー（またはグラス）に入れておく。湯を蒸らし注湯。中心から外側へ。',
+        '2投目：湯をリズムよく注ぐ。30秒ごとに注湯。',
+        '3投目：湯を注ぐ。落ち着いて均一に。',
+        '4投目：湯を注ぐ。',
+        '5投目：最終湯注湯。均一に仕上げる。'
       ];
       return {
         methodId: m.id, method: m.name, dose: dose, ratio: ratio, water: iTotal,
@@ -1061,7 +1061,7 @@
     var c = computeRecipe(rsState);
     $('rsCoffee').textContent = (c.dose == null) ? '—' : c.dose + 'g';
     if (c.isIce) {
-      $('rsWater').textContent = (c.hotWater == null) ? '—' : 'Hot ' + c.hotWater + 'g + Ice ' + c.ice + 'g';
+      $('rsWater').textContent = (c.hotWater == null) ? '—' : '湯 ' + c.hotWater + 'g + 氷 ' + c.ice + 'g';
     } else {
       $('rsWater').textContent = (c.water == null) ? '—' : c.water + 'g';
     }
@@ -1074,7 +1074,7 @@
     } else if (c.isHybrid) {
       $('rsNote').textContent = '要：' + m.equipment + '。前半透過（Switch open）→ 浸漬注湯（Switch close）→ 排出（Switch open）の3フェーズ。';
     } else if (c.isIce) {
-      $('rsNote').textContent = '氷はサーバー（またはグラス）に入れて準備。Hot ' + (c.hotWater || '—') + 'g で抽出、Ice ' + (c.ice || '—') + 'g で急冷。';
+      $('rsNote').textContent = '氷はサーバー（またはグラス）に入れて準備。湯 ' + (c.hotWater || '—') + 'g を5投で注ぎ、氷 ' + (c.ice || '—') + 'g で急冷。';
     } else {
       $('rsNote').textContent = m.descBody;
     }
@@ -1096,7 +1096,7 @@
     $('pvMethod').textContent = c.method;
     $('pvCoffee').textContent = (c.dose == null) ? '—' : c.dose + 'g';
     if (c.isIce) {
-      $('pvWater').textContent = (c.hotWater == null) ? '—' : 'Hot ' + c.hotWater + 'g + Ice ' + c.ice + 'g';
+      $('pvWater').textContent = (c.hotWater == null) ? '—' : '湯 ' + c.hotWater + 'g + 氷 ' + c.ice + 'g';
     } else {
       $('pvWater').textContent = (c.water == null) ? '—' : c.water + 'g';
     }
@@ -1108,7 +1108,7 @@
     } else if (c.isHybrid) {
       $('pvNote').textContent = '器具：' + c.equipment + '。前半透過（0:00・0:30 Switch open）→ 浸漬注湯（1:15 Switch close）→ 排出（1:45 Switch open）。';
     } else if (c.isIce) {
-      $('pvNote').textContent = '氷 ' + (c.ice || '—') + 'g をサーバーに入れて準備。Hot ' + (c.hotWater || '—') + 'g を5投で注ぎ急冷。仕上がり量は氷の融け具合による。';
+      $('pvNote').textContent = '氷 ' + (c.ice || '—') + 'g をサーバーに入れて準備。湯 ' + (c.hotWater || '—') + 'g を5投で注ぎ、抽出液をすぐに冷やします。仕上がり量は氷の溶け方で変わります。';
     } else {
       $('pvNote').textContent = METHODS[c.methodId].descBody;
     }
@@ -1127,7 +1127,7 @@
       } else {
         tlLabel = (i + 1) + '投目';
       }
-      tlAmt = c.isIce ? ('Hot ' + amounts[i] + 'g') : (amounts[i] + 'g');
+      tlAmt = c.isIce ? ('湯 ' + amounts[i] + 'g') : (amounts[i] + 'g');
       tl.appendChild(tlRow(tlLabel, formatTimeLoose(steps[i]), tlAmt, false));
     }
     tl.appendChild(tlRow('落ち切り目安', c.drawdown, '', true));
@@ -1205,7 +1205,7 @@
       $('abStep').textContent = '落ち切り確認';
       $('abPour').textContent = 'Wait';
       if (activeData.isIce) {
-        $('abTotal').textContent = 'Hot ' + (activeData.hotWater || activeData.water) + 'g 完了（Ice ' + (activeData.ice || '—') + 'g）';
+        $('abTotal').textContent = '湯 ' + (activeData.hotWater || activeData.water) + 'g 完了（氷 ' + (activeData.ice || '—') + 'g）';
         $('abInstruction').textContent = '落ち切りを確認。氷の上に抽出液が落ちたら完成。急冷されたら記録へ。';
       } else {
         $('abTotal').textContent = 'Total ' + activeData.water + 'g / ' + activeData.water + 'g';
@@ -1229,8 +1229,8 @@
     for (var i = 0; i <= idx; i++) sum += activeData.pourAmounts[i];
     if (activeData.isIce) {
       var hotTotal = activeData.hotWater || activeData.water;
-      $('abPour').textContent = 'Hot ' + cur + 'g';
-      $('abTotal').textContent = 'Hot ' + sum + 'g / ' + hotTotal + 'g（Ice ' + (activeData.ice || '—') + 'g）';
+      $('abPour').textContent = '湯 ' + cur + 'g';
+      $('abTotal').textContent = '湯 ' + sum + 'g / ' + hotTotal + 'g（氷 ' + (activeData.ice || '—') + 'g）';
     } else {
       $('abPour').textContent = 'Pour ' + cur + 'g';
       $('abTotal').textContent = 'Total ' + sum + 'g / ' + activeData.water + 'g';
@@ -1238,7 +1238,7 @@
     $('abInstruction').textContent = activeData.notes[idx] || '';
     if (idx + 1 < total) {
       var nextAmt = activeData.pourAmounts[idx + 1];
-      var nextLabel = activeData.isIce ? ('Hot ' + nextAmt + 'g') : ('Pour ' + nextAmt + 'g');
+      var nextLabel = activeData.isIce ? ('湯 ' + nextAmt + 'g') : ('Pour ' + nextAmt + 'g');
       $('abNext').innerHTML = '<span>Next</span> ' + formatTimeLoose(activeData.stepTimesSec[idx + 1]) + ' / ' + nextLabel;
     } else {
       $('abNext').innerHTML = '<span>Next</span> ' + formatTimeLoose(activeData.drawdownSec) + ' / 落ち切り';
@@ -1280,7 +1280,7 @@
     $('blMethod').textContent = a.method;
     $('blCoffee').textContent = (a.dose == null ? '—' : a.dose + 'g');
     if (a.isIce) {
-      $('blWater').textContent = (a.hotWater == null ? '—' : 'Hot ' + a.hotWater + 'g + Ice ' + a.ice + 'g');
+      $('blWater').textContent = (a.hotWater == null ? '—' : '湯 ' + a.hotWater + 'g + 氷 ' + a.ice + 'g');
     } else {
       $('blWater').textContent = (a.water == null ? '—' : a.water + 'g');
     }
@@ -1292,7 +1292,7 @@
     } else if (a.isHybrid) {
       $('blNote').textContent = '器具：' + (a.equipment || 'HARIO Switch系') + '。前半透過・後半浸漬→排出のハイブリッド抽出。';
     } else if (a.isIce) {
-      $('blNote').textContent = '急冷アイス。Hot ' + (a.hotWater || '—') + 'g + Ice ' + (a.ice || '—') + 'g。仕上がり量は氷の融け具合による。';
+      $('blNote').textContent = '急冷アイス。湯 ' + (a.hotWater || '—') + 'g + 氷 ' + (a.ice || '—') + 'g。仕上がり量は氷の溶け方で変わります。';
     } else {
       $('blNote').textContent = (METHODS[a.methodId] ? METHODS[a.methodId].descBody : '');
     }
