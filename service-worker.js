@@ -4,7 +4,7 @@
    Bump CACHE_VERSION on every release to invalidate old caches.
    ============================================================ */
 
-const CACHE_VERSION = 'pouro-v1.19.0';
+const CACHE_VERSION = 'pouro-v1.20.0';
 
 /* All assets the app needs to run fully offline.
    Pourō uses only system fonts and inline CSS/JS, so this list
@@ -18,7 +18,6 @@ const PRECACHE_URLS = [
   './icons/icon-maskable-512.png',
   './icons/apple-touch-icon.png',
   './icons/favicon-32.png',
-  './icons/favicon-180.png',
   // UI icons referenced by index.html (only the in-use 128px variants)
   './assets/icons/128/ui/icon-ui-brew-muted.png',
   './assets/icons/128/ui/icon-ui-history-muted.png',
