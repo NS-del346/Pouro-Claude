@@ -4,7 +4,7 @@
    Bump CACHE_VERSION on every release to invalidate old caches.
    ============================================================ */
 
-const CACHE_VERSION = 'pouro-v1.11.0';
+const CACHE_VERSION = 'pouro-v1.12.0';
 
 /* All assets the app needs to run fully offline.
    Pourō uses only system fonts and inline CSS/JS, so this list

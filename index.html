@@ -794,11 +794,20 @@
   /* ============ Recipe compute (4:6 正本 + 他メソッド均等割り) ============ */
   function build46Notes(backPours) {
     var notes = [
-      '前半1投目：味の方向性を決める注湯。中心から外側へゆっくり。',
-      '前半2投目：味を整える注湯。中心から外側へゆっくり。'
+      '前半1投目：味の土台を作る注湯。中心から外側へゆっくり。',
+      '前半2投目：味の方向を整える注湯。粉床全体を均一に濡らす。'
     ];
     for (var i = 0; i < backPours; i++) {
-      notes.push('後半' + (i + 1) + '投目：濃度を作る注湯。落ち着いて均一に注ぐ。');
+      var isLast = (i === backPours - 1);
+      if (isLast && backPours === 1) {
+        notes.push('後半1投目：濃度を作る注湯。目標湯量まで丁寧に。');
+      } else if (isLast) {
+        notes.push('後半' + (i + 1) + '投目：仕上げの注湯。目標湯量まで丁寧に。');
+      } else if (i === 0) {
+        notes.push('後半1投目：濃度を作る注湯。落ち着いて均一に。');
+      } else {
+        notes.push('後半' + (i + 1) + '投目：濃度を積み上げる注湯。注ぎ切り後は粉床を待つ。');
+      }
     }
     return notes;
   }
@@ -842,9 +851,9 @@
       var hAmounts = (h1 == null) ? null : [h1, h2, h3];
       var hSteps = [0, 30, 75];
       var hNotes = [
-        '0:00｜透過 1投目｜Switch open。中心から外側へゆっくり注湯。',
-        '0:30｜透過 2投目｜Switch open のまま注湯。0:45〜1:15 湯温を約70℃へ下げる。',
-        '1:15｜浸漬注湯｜Switch close。3投目注湯。→ 1:45｜排出開始｜Switch open して落とし切る。'
+        '0:00｜透過 1投目｜Switch open。通常の透過として注ぐ。',
+        '0:30｜透過 2投目｜Switch open。注ぎ終えたら湯温を約70℃へ下げる準備。',
+        '1:15｜浸漬注湯｜Switch close。注ぎ終えたら30秒ほど浸漬し、1:45にSwitch openして落とし切る。'
       ];
       return {
         methodId: m.id, method: m.name, dose: dose, ratio: ratio, water: water,
@@ -862,9 +871,10 @@
       var nAmounts = (water == null) ? null : splitEvenly(water, nPours);
       var nNotes = [];
       for (var ni = 0; ni < nPours; ni++) {
-        if (ni === 0) nNotes.push('1投目：蒸らし注湯。中心から外側へゆっくり。30秒後に2投目。');
-        else if (ni < nPours - 1) nNotes.push((ni + 1) + '投目：15秒リズムで注湯。中心から外側へ。');
-        else nNotes.push('10投目：最終注湯。均一に仕上げる。落ち切り目安 3:30〜4:00。');
+        if (ni === 0) nNotes.push('1投目：注いだら30秒置く。次は0:30。');
+        else if (ni === 1) nNotes.push('2投目：ここから15秒リズム。湯量を小さく正確に。');
+        else if (ni < nPours - 1) nNotes.push((ni + 1) + '投目：テンポを崩さず、注湯量を揃える。');
+        else nNotes.push('10投目：最後の注湯。3:30〜4:00の落ち切りを目安に。');
       }
       return {
         methodId: m.id, method: m.name, dose: dose, ratio: ratio, water: water,
@@ -884,11 +894,11 @@
       for (var ij = 0; ij < iPours; ij++) iSteps.push(ij * 30);
       var iAmounts = (iHot == null) ? null : splitEvenly(iHot, iPours);
       var iNotes = [
-        '氷をサーバー（またはグラス）に入れておく。湯を蒸らし注湯。中心から外側へ。',
-        '2投目：湯をリズムよく注ぐ。30秒ごとに注湯。',
-        '3投目：湯を注ぐ。落ち着いて均一に。',
-        '4投目：湯を注ぐ。',
-        '5投目：最終湯注湯。均一に仕上げる。'
+        '1投目：氷を入れたサーバーへ抽出を開始。湯をゆっくり注ぐ。',
+        '2投目：30秒ごとに湯を注ぐ。累計は注いだ湯量のみ。',
+        '3投目：30秒ごとに湯を注ぐ。累計は注いだ湯量のみ。',
+        '4投目：30秒ごとに湯を注ぐ。累計は注いだ湯量のみ。',
+        '5投目：最後の湯を注ぐ。落ち切ったら氷となじませる。'
       ];
       return {
         methodId: m.id, method: m.name, dose: dose, ratio: ratio, water: iTotal,
@@ -1070,11 +1080,13 @@
     $('rsDraw').textContent = c.drawdown;
     if (is46) {
       var sObj = findById(STRENGTHS, rsState.strength) || STRENGTHS[1];
-      $('rsNote').textContent = '前半2投（全体の40%）で味を整え、後半' + sObj.backPours + '投（60%）で濃度を調整。';
+      $('rsNote').textContent = '前半2投で味の方向性、後半' + sObj.backPours + '投で濃度を調整します。迷ったらベーシック／しっかりから始めると安定します。';
     } else if (c.isHybrid) {
-      $('rsNote').textContent = '要：' + m.equipment + '。前半透過（Switch open）→ 浸漬注湯（Switch close）→ 排出（Switch open）の3フェーズ。';
+      $('rsNote').textContent = 'Switchの開閉が前提です。前半は透過、後半は閉じて浸漬し、最後に開けて排出します。';
     } else if (c.isIce) {
-      $('rsNote').textContent = '湯量は豆量×7.5（' + (c.hotWater || '—') + 'g）、氷量は豆量×4（' + (c.ice || '—') + 'g）で固定計算。比率は湯量に反映されません。';
+      $('rsNote').textContent = '湯量 ' + (c.hotWater || '—') + 'g・氷 ' + (c.ice || '—') + 'g（比率は湯量に反映されません）。タイマーの累計は注いだ湯量のみです。';
+    } else if (m.id === 'neo') {
+      $('rsNote').textContent = '細かく10回に分けて注ぐレシピです。1投目の後は30秒、2投目以降は15秒リズムを優先します。';
     } else {
       $('rsNote').textContent = m.descBody;
     }
@@ -1104,11 +1116,13 @@
     $('pvPours').textContent = c.pours;
     $('pvDraw').textContent = c.drawdown;
     if (c.is46) {
-      $('pvNote').textContent = '前半2投（全体の40%）で味を整え、後半' + c.backPours + '投（60%）で濃度を調整。';
+      $('pvNote').textContent = '前半2投は味の調整、後半' + c.backPours + '投は濃度調整。各投の後は粉床が落ち着くのを待ってから次へ進みます。';
     } else if (c.isHybrid) {
-      $('pvNote').textContent = '器具：' + c.equipment + '。前半透過（0:00・0:30 Switch open）→ 浸漬注湯（1:15 Switch close）→ 排出（1:45 Switch open）。';
+      $('pvNote').textContent = 'Switchを開いた状態で開始します。2投目後に湯温を約70℃へ下げ、3投目はSwitchを閉じて浸漬します。';
     } else if (c.isIce) {
-      $('pvNote').textContent = '氷 ' + (c.ice || '—') + 'g をサーバーに入れて準備。湯 ' + (c.hotWater || '—') + 'g を5投で注ぎ、抽出液をすぐに冷やします。仕上がり量は氷の溶け方で変わります。';
+      $('pvNote').textContent = '氷 ' + (c.ice || '—') + 'g をサーバーまたはグラスに入れてから開始します。表示される累計は、氷を除いた注湯量です。';
+    } else if (c.methodId === 'neo') {
+      $('pvNote').textContent = '10投すべてのテンポが重要です。2投目以降は15秒ごとに注ぐため、ケトルとスケールを見やすい位置に置いてください。';
     } else {
       $('pvNote').textContent = METHODS[c.methodId].descBody;
     }
@@ -1134,7 +1148,7 @@
     if (c.isIce) {
       $('pvRinse').textContent = '氷 ' + (c.ice || '—') + 'g をサーバーまたはグラスに入れて準備。ペーパーを湯通しし、サーバーは温めずに使用。';
     } else if (c.isHybrid) {
-      $('pvRinse').textContent = 'HARIO Switch（または同等の開閉機構付きドリッパー）が必要。ペーパーを湯通し後、Switch を開いた状態でセット。0:45〜1:15 の間に湯温を約70℃へ下げる。';
+      $('pvRinse').textContent = 'HARIO Switch（または同等の開閉機構付きドリッパー）が必要です（通常のV60では代用不可）。Switch を開いた状態でセットし、0:45〜1:15 の間に湯温を約70℃へ下げます。';
     } else {
       $('pvRinse').textContent = 'ペーパーを湯通しし、サーバーを温めてから抽出を始めます。';
     }
