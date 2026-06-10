@@ -194,7 +194,15 @@
   #screen-recipeSetup .header-titles { text-align: center; }
   #screen-recipeSetup .header-title { font-size: 18px; font-weight: 600; color: var(--ink); }
   #screen-recipeSetup .header-sub { font-size: 12.5px; color: var(--sub); margin-top: 1px; }
-  #screen-recipeSetup .content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; padding: 2px 18px 0; min-height: 0; gap: 8px; }
+  #screen-recipeSetup .content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; padding: 2px 18px 0; min-height: 0; }
+  #screen-recipeSetup .rs-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; display: flex; flex-direction: column; gap: 8px; padding-bottom: 4px; }
+  #screen-recipeSetup .rs-scroll::-webkit-scrollbar { display: none; }
+  #screen-recipeSetup .equip-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 0 14px; }
+  #screen-recipeSetup .equip-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+  #screen-recipeSetup .equip-row + .equip-row { border-top: 1px solid var(--border); }
+  #screen-recipeSetup .equip-key { flex: 0 0 56px; font-size: 13px; color: var(--sub); }
+  #screen-recipeSetup .equip-select { flex: 1; background: none; border: none; font-family: var(--font-sans); font-size: 14px; color: var(--ink); -webkit-appearance: none; appearance: none; padding: 2px 0; min-width: 0; cursor: pointer; }
+  #screen-recipeSetup .equip-select:focus { outline: none; }
   #screen-recipeSetup .section-label { font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: 0.05em; margin-bottom: 7px; }
   #screen-recipeSetup .pill-row { display: grid; gap: 8px; }
   #screen-recipeSetup .pill-row.dose { grid-template-columns: repeat(6, 1fr); }
@@ -425,6 +433,16 @@
   #screen-settings .about-tag { font-family: var(--font-serif); font-style: italic; font-size: 15px; color: var(--ink); opacity: 0.85; margin-bottom: 12px; }
   #screen-settings .about-line { font-size: 13.5px; color: var(--sub); line-height: 1.65; }
   #screen-settings .about-line.ja { margin-top: 2px; }
+  #screen-settings .st-select-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 5px 0; min-height: 44px; }
+  #screen-settings .st-select { background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 7px 30px 7px 10px; font-family: var(--font-sans); font-size: 14px; color: var(--accent); max-width: 165px; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236F6258' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; background-size: 10px 6px; cursor: pointer; }
+  #screen-settings .st-select:focus { outline: none; border-color: var(--accent); }
+  .st-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 5px 0; min-height: 44px; -webkit-tap-highlight-color: transparent; }
+  .st-switch { position: relative; width: 48px; height: 28px; flex-shrink: 0; display: inline-block; }
+  .st-switch input[type="checkbox"] { opacity: 0; width: 0; height: 0; position: absolute; }
+  .st-switch-slider { position: absolute; inset: 0; border-radius: 999px; background: var(--border); transition: background 200ms ease; cursor: pointer; }
+  .st-switch-slider::before { content: ""; position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #fff; top: 3px; left: 3px; transition: transform 200ms ease; box-shadow: 0 1px 3px rgba(0,0,0,0.18); }
+  .st-switch input[type="checkbox"]:checked + .st-switch-slider { background: var(--accent); }
+  .st-switch input[type="checkbox"]:checked + .st-switch-slider::before { transform: translateX(20px); }
 
   /* ===================================================================
      8) HISTORY DETAIL
@@ -500,32 +518,59 @@
         <div></div>
       </header>
       <div class="content">
-        <section><div class="section-label">豆量</div><div class="pill-row dose" id="rsDose"></div></section>
-        <section>
-          <div class="section-label">比率</div>
-          <div class="stepper">
-            <button class="step-btn minus" id="rsMinus" aria-label="比率を下げる">−</button>
-            <div class="step-value" id="rsRatio">1:15</div>
-            <button class="step-btn plus" id="rsPlus" aria-label="比率を上げる">＋</button>
-          </div>
-        </section>
-        <section id="rs46" class="section">
-          <div class="section-label">4:6設定</div>
-          <div class="field"><div class="sub-label">味の方向</div><div class="pill-row triad" id="rsFlavor"></div></div>
-          <div class="field"><div class="sub-label">濃度</div><div class="pill-row triad" id="rsStrength"></div></div>
-        </section>
-        <section class="summary">
-          <div class="summary-grid">
-            <div class="stat"><div class="stat-label">Coffee</div><div class="stat-value" id="rsCoffee">18g</div></div>
-            <div class="stat"><div class="stat-label">Water</div><div class="stat-value" id="rsWater">270g</div></div>
-            <div class="stat"><div class="stat-label">Pours</div><div class="stat-value" id="rsPours">2 + 2</div></div>
-          </div>
-          <div class="summary-grid2">
-            <div class="stat"><div class="stat-label">Interval</div><div class="stat-value" id="rsInterval">45s</div></div>
-            <div class="stat"><div class="stat-label">Drawdown</div><div class="stat-value" id="rsDraw">3:30</div></div>
-          </div>
-          <div class="summary-note" id="rsNote">前半2投で味を整え、後半2投で濃度を調整。</div>
-        </section>
+        <div class="rs-scroll">
+          <section><div class="section-label">豆量</div><div class="pill-row dose" id="rsDose"></div></section>
+          <section>
+            <div class="section-label">比率</div>
+            <div class="stepper">
+              <button class="step-btn minus" id="rsMinus" aria-label="比率を下げる">−</button>
+              <div class="step-value" id="rsRatio">1:15</div>
+              <button class="step-btn plus" id="rsPlus" aria-label="比率を上げる">＋</button>
+            </div>
+          </section>
+          <section id="rs46" class="section">
+            <div class="section-label">4:6設定</div>
+            <div class="field"><div class="sub-label">味の方向</div><div class="pill-row triad" id="rsFlavor"></div></div>
+            <div class="field"><div class="sub-label">濃度</div><div class="pill-row triad" id="rsStrength"></div></div>
+          </section>
+          <section id="rsEquipSection">
+            <div class="section-label">Equipment</div>
+            <div class="equip-card">
+              <div class="equip-row">
+                <span class="equip-key">豆</span>
+                <select id="rsEqBean" class="equip-select"></select>
+              </div>
+              <div class="equip-row">
+                <span class="equip-key">挽目</span>
+                <select id="rsEqGrind" class="equip-select"></select>
+              </div>
+              <div class="equip-row">
+                <span class="equip-key">湯温</span>
+                <select id="rsEqTemp" class="equip-select"></select>
+              </div>
+              <div class="equip-row">
+                <span class="equip-key">グラインダー</span>
+                <select id="rsEqGrinder" class="equip-select"></select>
+              </div>
+              <div class="equip-row">
+                <span class="equip-key">ドリッパー</span>
+                <select id="rsEqDripper" class="equip-select"></select>
+              </div>
+            </div>
+          </section>
+          <section class="summary">
+            <div class="summary-grid">
+              <div class="stat"><div class="stat-label">Coffee</div><div class="stat-value" id="rsCoffee">18g</div></div>
+              <div class="stat"><div class="stat-label">Water</div><div class="stat-value" id="rsWater">270g</div></div>
+              <div class="stat"><div class="stat-label">Pours</div><div class="stat-value" id="rsPours">2 + 2</div></div>
+            </div>
+            <div class="summary-grid2">
+              <div class="stat"><div class="stat-label">Interval</div><div class="stat-value" id="rsInterval">45s</div></div>
+              <div class="stat"><div class="stat-label">Drawdown</div><div class="stat-value" id="rsDraw">3:30</div></div>
+            </div>
+            <div class="summary-note" id="rsNote">前半2投で味を整え、後半2投で濃度を調整。</div>
+          </section>
+        </div>
         <div class="cta-wrap"><button class="cta" id="rsCta">レシピを確認する</button></div>
       </div>
     </section>
@@ -688,34 +733,74 @@
         <header><h1 class="page-title">Settings</h1><p class="page-sub">抽出の基準を、静かに整える</p></header>
         <section class="card">
           <div class="card-title">Default brew</div>
-          <button class="row st-cycle-row" id="stMethodRow" aria-label="Methodを変更">
-            <span class="k">Method</span><span class="st-cycle-val" id="stMethod">4:6 Method</span>
-          </button>
-          <button class="row st-cycle-row" id="stDoseRow" aria-label="Coffeeを変更">
-            <span class="k">Coffee</span><span class="st-cycle-val" id="stDose">18g</span>
-          </button>
-          <button class="row st-cycle-row" id="stRatioRow" aria-label="Ratioを変更">
-            <span class="k">Ratio</span><span class="st-cycle-val" id="stRatio">1:15</span>
-          </button>
-          <button class="row st-cycle-row" id="stFlavorRow" aria-label="Flavorを変更">
-            <span class="k">Flavor</span><span class="st-cycle-val" id="stFlavor">ベーシック</span>
-          </button>
-          <button class="row st-cycle-row" id="stStrengthRow" aria-label="Strengthを変更">
-            <span class="k">Strength</span><span class="st-cycle-val" id="stStrength">標準</span>
-          </button>
-          <div class="card-note">新しい抽出を始めるときの初期値です。タップで変更できます。<br>既存の抽出設定が残っている場合は、Recipe Setupの値が優先されます。</div>
+          <div class="st-select-row">
+            <span class="k">Method</span>
+            <select id="stMethodSel" class="st-select" aria-label="Method">
+              <option>4:6 Method</option>
+              <option>Hybrid</option>
+              <option>THE NEO BREW</option>
+              <option>Ice Brew</option>
+            </select>
+          </div>
+          <div class="st-select-row">
+            <span class="k">Coffee</span>
+            <select id="stDoseSel" class="st-select" aria-label="Coffee">
+              <option value="18">18g</option>
+              <option value="24">24g</option>
+              <option value="30">30g</option>
+              <option value="36">36g</option>
+              <option value="48">48g</option>
+            </select>
+          </div>
+          <div class="st-select-row">
+            <span class="k">Ratio</span>
+            <select id="stRatioSel" class="st-select" aria-label="Ratio">
+              <option value="14">1:14</option>
+              <option value="15">1:15</option>
+              <option value="16">1:16</option>
+            </select>
+          </div>
+          <div class="st-select-row">
+            <span class="k">Flavor</span>
+            <select id="stFlavorSel" class="st-select" aria-label="Flavor">
+              <option>より甘く</option>
+              <option>ベーシック</option>
+              <option>より明るく</option>
+            </select>
+          </div>
+          <div class="st-select-row">
+            <span class="k">Strength</span>
+            <select id="stStrengthSel" class="st-select" aria-label="Strength">
+              <option>軽め</option>
+              <option>標準</option>
+              <option>しっかり</option>
+            </select>
+          </div>
+          <div class="card-note">新しい抽出を始めるときの初期値です。<br>既存の抽出設定が残っている場合は、Recipe Setupの値が優先されます。</div>
         </section>
         <section class="card">
           <div class="card-title">Brew assist</div>
-          <button class="row st-toggle-row" id="stScreenRow" aria-label="Keep screen awakeを切り替え">
-            <span class="k">Keep screen awake</span><span class="state" id="stScreen">On</span>
-          </button>
-          <button class="row st-toggle-row" id="stSoundRow" aria-label="Sound cuesを切り替え">
-            <span class="k">Sound cues</span><span class="state" id="stSound">Off</span>
-          </button>
-          <button class="row st-toggle-row" id="stHapticRow" aria-label="Haptic cuesを切り替え">
-            <span class="k">Haptic cues</span><span class="state" id="stHaptic">Off</span>
-          </button>
+          <label class="st-switch-row" for="stScreenChk">
+            <span class="k">Keep screen awake</span>
+            <span class="st-switch">
+              <input type="checkbox" id="stScreenChk" role="switch" aria-label="Keep screen awake">
+              <span class="st-switch-slider"></span>
+            </span>
+          </label>
+          <label class="st-switch-row" for="stSoundChk">
+            <span class="k">Sound cues</span>
+            <span class="st-switch">
+              <input type="checkbox" id="stSoundChk" role="switch" aria-label="Sound cues">
+              <span class="st-switch-slider"></span>
+            </span>
+          </label>
+          <label class="st-switch-row" for="stHapticChk">
+            <span class="k">Haptic cues</span>
+            <span class="st-switch">
+              <input type="checkbox" id="stHapticChk" role="switch" aria-label="Haptic cues">
+              <span class="st-switch-slider"></span>
+            </span>
+          </label>
           <div class="card-note">端末やブラウザにより一部の補助機能は制限されます。</div>
         </section>
         <section class="card">
@@ -870,7 +955,15 @@
   /* ============ Draft / Active / History / Settings ============ */
   var DEFAULT_SETTINGS = {
     defaultBrew: { method: '4:6 Method', dose: 18, ratio: 15, flavor: 'ベーシック', strength: 'しっかり' },
-    brewAssist: { keepScreenAwake: true, soundCues: false, hapticCues: false }
+    brewAssist: { keepScreenAwake: true, soundCues: false, hapticCues: false },
+    equipmentDefaults: { bean: '未設定', grind: '未設定', temperature: '未設定', grinder: '未設定', dripper: '未設定' },
+    equipmentPresets: {
+      beans:        ['未設定', '浅煎り', '中煎り', '深煎り'],
+      grinds:       ['未設定', '中細挽き', '中挽き', '中粗挽き', '粗挽き'],
+      temperatures: ['未設定', '83℃', '88℃', '93℃', 'Hot / Ice'],
+      grinders:     ['未設定', '手挽き', '電動グラインダー'],
+      drippers:     ['未設定', 'V60', 'HARIO Switch', 'Origami']
+    }
   };
 
   function saveBrewDraft(patch) {
@@ -918,7 +1011,9 @@
     if (!p || typeof p !== 'object') return DEFAULT_SETTINGS;
     return {
       defaultBrew: Object.assign({}, DEFAULT_SETTINGS.defaultBrew, p.defaultBrew || {}),
-      brewAssist: Object.assign({}, DEFAULT_SETTINGS.brewAssist, p.brewAssist || {})
+      brewAssist: Object.assign({}, DEFAULT_SETTINGS.brewAssist, p.brewAssist || {}),
+      equipmentDefaults: Object.assign({}, DEFAULT_SETTINGS.equipmentDefaults, p.equipmentDefaults || {}),
+      equipmentPresets: Object.assign({}, DEFAULT_SETTINGS.equipmentPresets, p.equipmentPresets || {})
     };
   }
 
@@ -1136,6 +1231,9 @@
      =================================================================== */
   var rsState = { method: 'yon-roku', dose: 18, ratio: 15, flavor: 'balanced', strength: 'strong' };
   var rsBuilt = false;
+  var rsEquipState = { bean: '未設定', grind: '未設定', temperature: '未設定', grinder: '未設定', dripper: '未設定' };
+  var rsEquipBuilt = false;
+
   function rsInitFromDraft() {
     var d = loadBrewDraft(), s = readSettings();
     rsState.method = (d.method && METHODS[d.method]) ? d.method : methodNameToId(s.defaultBrew.method);
@@ -1143,6 +1241,40 @@
     rsState.ratio = d.ratio || s.defaultBrew.ratio || 15;
     rsState.flavor = d.flavor || flavorNameToId(s.defaultBrew.flavor);
     rsState.strength = d.strength || strengthNameToId(s.defaultBrew.strength);
+    // Equipment: draft first, then settings defaults
+    var dEq = (d.equipment && typeof d.equipment === 'object') ? d.equipment : {};
+    var sEd = s.equipmentDefaults;
+    rsEquipState.bean        = dEq.bean        || sEd.bean        || '未設定';
+    rsEquipState.grind       = dEq.grind       || sEd.grind       || '未設定';
+    rsEquipState.temperature = dEq.temperature || sEd.temperature || '未設定';
+    rsEquipState.grinder     = dEq.grinder     || sEd.grinder     || '未設定';
+    rsEquipState.dripper     = dEq.dripper     || sEd.dripper     || '未設定';
+  }
+
+  function rsBuildEquipSelects() {
+    var s = readSettings(), ep = s.equipmentPresets;
+    function fillSelect(id, options, currentVal) {
+      var sel = $(id); sel.innerHTML = '';
+      options.forEach(function (opt) {
+        var o = document.createElement('option');
+        o.value = opt; o.textContent = opt;
+        sel.appendChild(o);
+      });
+      sel.value = currentVal;
+    }
+    fillSelect('rsEqBean',    ep.beans,        rsEquipState.bean);
+    fillSelect('rsEqGrind',   ep.grinds,       rsEquipState.grind);
+    fillSelect('rsEqTemp',    ep.temperatures, rsEquipState.temperature);
+    fillSelect('rsEqGrinder', ep.grinders,     rsEquipState.grinder);
+    fillSelect('rsEqDripper', ep.drippers,     rsEquipState.dripper);
+    if (!rsEquipBuilt) {
+      $('rsEqBean').addEventListener('change', function () { rsEquipState.bean = this.value; });
+      $('rsEqGrind').addEventListener('change', function () { rsEquipState.grind = this.value; });
+      $('rsEqTemp').addEventListener('change', function () { rsEquipState.temperature = this.value; });
+      $('rsEqGrinder').addEventListener('change', function () { rsEquipState.grinder = this.value; });
+      $('rsEqDripper').addEventListener('change', function () { rsEquipState.dripper = this.value; });
+      rsEquipBuilt = true;
+    }
   }
   function rsBuildPills() {
     var doseRow = $('rsDose'); doseRow.innerHTML = '';
@@ -1188,6 +1320,7 @@
     if (!rsBuilt) rsBuildPills();
     rsInitFromDraft();
     rsSyncActive();
+    rsBuildEquipSelects();
     rsRender();
   };
   function rsRender() {
@@ -1215,7 +1348,7 @@
     } else if (c.isHybrid) {
       $('rsNote').textContent = 'Switchの開閉が前提です。前半は透過、後半は閉じて浸漬し、最後に開けて排出します。';
     } else if (c.isIce) {
-      $('rsNote').textContent = '湯量 ' + (c.hotWater || '—') + 'g / 氷 ' + (c.ice || '—') + 'g（比率は湯量に反映されません）。タイマーの累計は注いだ湯量のみです。';
+      $('rsNote').textContent = 'Hot ' + (c.hotWater || '—') + 'g / Ice ' + (c.ice || '—') + 'g（比率はHot量に反映されません）。タイマーの累計は注いだ湯量のみです。';
     } else if (m.id === 'neo') {
       $('rsNote').textContent = '細かく10回に分けて注ぐレシピです。1投目の後は30秒、2投目以降は15秒リズムを優先します。';
     } else {
@@ -1226,7 +1359,15 @@
   $('rsPlus').addEventListener('click', function () { if (rsState.ratio < RATIO_MAX) { rsState.ratio++; rsRender(); } });
   $('rsBack').addEventListener('click', function () { showScreen('brewHome'); });
   $('rsCta').addEventListener('click', function () {
-    saveBrewDraft({ method: rsState.method, dose: rsState.dose, ratio: rsState.ratio, flavor: rsState.flavor, strength: rsState.strength });
+    saveBrewDraft({
+      method: rsState.method, dose: rsState.dose, ratio: rsState.ratio,
+      flavor: rsState.flavor, strength: rsState.strength,
+      equipment: {
+        bean: rsEquipState.bean, grind: rsEquipState.grind,
+        temperature: rsEquipState.temperature, grinder: rsEquipState.grinder,
+        dripper: rsEquipState.dripper
+      }
+    });
     showScreen('preview');
   });
 
@@ -1251,7 +1392,7 @@
     } else if (c.isHybrid) {
       $('pvNote').textContent = 'Switchを開いた状態で開始します。2投目後に湯温を約70℃へ下げ、3投目はSwitchを閉じて浸漬します。';
     } else if (c.isIce) {
-      $('pvNote').textContent = '氷 ' + (c.ice || '—') + 'g をサーバーまたはグラスに入れてから開始します。表示される累計は、氷を除いた注湯量です。';
+      $('pvNote').textContent = 'Ice ' + (c.ice || '—') + 'g をサーバーまたはグラスに入れてから開始します。表示される累計は、Ice を除いた注湯量です。';
     } else if (c.methodId === 'neo') {
       $('pvNote').textContent = '10投すべてのテンポが重要です。2投目以降は15秒ごとに注ぐため、ケトルとスケールを見やすい位置に置いてください。';
     } else {
@@ -1272,12 +1413,12 @@
       } else {
         tlLabel = (i + 1) + '投目';
       }
-      tlAmt = c.isIce ? ('湯 ' + amounts[i] + 'g') : (amounts[i] + 'g');
+      tlAmt = c.isIce ? ('Hot ' + amounts[i] + 'g') : (amounts[i] + 'g');
       tl.appendChild(tlRow(tlLabel, formatTimeLoose(steps[i]), tlAmt, false));
     }
     tl.appendChild(tlRow('落ち切り目安', c.drawdown, '', true));
     if (c.isIce) {
-      $('pvRinse').textContent = '氷 ' + (c.ice || '—') + 'g をサーバーまたはグラスに入れて準備。ペーパーを湯通しし、サーバーは温めずに使用。';
+      $('pvRinse').textContent = 'Ice ' + (c.ice || '—') + 'g をサーバーまたはグラスに入れて準備。ペーパーを湯通しし、サーバーは温めずに使用。';
     } else if (c.isHybrid) {
       $('pvRinse').textContent = 'HARIO Switch（または同等の開閉機構付きドリッパー）が必要です（通常のV60では代用不可）。Switch を開いた状態でセットし、0:45〜1:15 の間に湯温を約70℃へ下げます。';
     } else {
@@ -1351,7 +1492,7 @@
       $('abStep').textContent = '落ち切り確認';
       $('abPour').textContent = 'Wait';
       if (activeData.isIce) {
-        $('abTotal').textContent = '湯 ' + (activeData.hotWater || activeData.water) + 'g 完了（氷 ' + (activeData.ice || '—') + 'g）';
+        $('abTotal').textContent = 'Hot ' + (activeData.hotWater || activeData.water) + 'g done (Ice ' + (activeData.ice || '—') + 'g)';
         $('abInstruction').textContent = '落ち切りを確認。氷の上に抽出液が落ちたら完成。急冷されたら記録へ。';
       } else {
         $('abTotal').textContent = 'Total ' + activeData.water + 'g / ' + activeData.water + 'g';
@@ -1375,8 +1516,8 @@
     for (var i = 0; i <= idx; i++) sum += activeData.pourAmounts[i];
     if (activeData.isIce) {
       var hotTotal = activeData.hotWater || activeData.water;
-      $('abPour').textContent = '湯 ' + cur + 'g';
-      $('abTotal').textContent = '湯 ' + sum + 'g / ' + hotTotal + 'g（氷 ' + (activeData.ice || '—') + 'g）';
+      $('abPour').textContent = 'Hot ' + cur + 'g';
+      $('abTotal').textContent = 'Hot ' + sum + 'g / ' + hotTotal + 'g (Ice ' + (activeData.ice || '—') + 'g)';
     } else {
       $('abPour').textContent = 'Pour ' + cur + 'g';
       $('abTotal').textContent = 'Total ' + sum + 'g / ' + activeData.water + 'g';
@@ -1384,7 +1525,7 @@
     $('abInstruction').textContent = activeData.notes[idx] || '';
     if (idx + 1 < total) {
       var nextAmt = activeData.pourAmounts[idx + 1];
-      var nextLabel = activeData.isIce ? ('湯 ' + nextAmt + 'g') : ('Pour ' + nextAmt + 'g');
+      var nextLabel = activeData.isIce ? ('Hot ' + nextAmt + 'g') : ('Pour ' + nextAmt + 'g');
       $('abNext').innerHTML = '<span>Next</span> ' + formatTimeLoose(activeData.stepTimesSec[idx + 1]) + ' / ' + nextLabel;
     } else {
       $('abNext').innerHTML = '<span>Next</span> ' + formatTimeLoose(activeData.drawdownSec) + ' / 落ち切り';
@@ -1442,11 +1583,23 @@
     } else {
       $('blNote').textContent = (METHODS[a.methodId] ? METHODS[a.methodId].descBody : '');
     }
-    // reset entry state per brew
-    blState = { rating: 4, tags: [], note: '', equipment: { beanGrind: '', dripper: '', temperature: '' } };
+    // reset entry state per brew; pre-fill equipment from draft if available
+    var draftEq = (function () { var d = loadBrewDraft(); return (d.equipment && typeof d.equipment === 'object') ? d.equipment : {}; })();
+    function eqVal(v) { return (v && v !== '未設定') ? v : ''; }
+    var beanGrindPre = [eqVal(draftEq.bean), eqVal(draftEq.grind)].filter(Boolean).join(' / ');
+    blState = { rating: 4, tags: [], note: '', equipment: {
+      beanGrind:   beanGrindPre || '',
+      dripper:     eqVal(draftEq.dripper) || '',
+      temperature: eqVal(draftEq.temperature) || '',
+      bean:        draftEq.bean || '',
+      grind:       draftEq.grind || '',
+      grinder:     draftEq.grinder || ''
+    }};
     blSaved = false;
     $('blNoteInput').value = '';
-    $('blBean').value = ''; $('blDripper').value = ''; $('blTemp').value = '';
+    $('blBean').value = blState.equipment.beanGrind;
+    $('blDripper').value = blState.equipment.dripper;
+    $('blTemp').value = blState.equipment.temperature;
     var hint = $('blHint'); hint.textContent = '保存すると履歴に追加されます'; hint.classList.remove('saved');
     $('blSave').disabled = false;
     blRenderRating(); blRenderTags();
@@ -1501,7 +1654,14 @@
       pourAmounts: (a.pourAmounts || []).slice(), drawdown: a.drawdown,
       isIce: a.isIce || false, isHybrid: a.isHybrid || false,
       rating: blState.rating, tags: blState.tags.slice(), note: blState.note,
-      equipment: { beanGrind: blState.equipment.beanGrind, dripper: blState.equipment.dripper, temperature: blState.equipment.temperature }
+      equipment: {
+        beanGrind:   blState.equipment.beanGrind,
+        dripper:     blState.equipment.dripper,
+        temperature: blState.equipment.temperature,
+        bean:        blState.equipment.bean    || '',
+        grind:       blState.equipment.grind   || '',
+        grinder:     blState.equipment.grinder || ''
+      }
     };
     var ok = saveToBrewHistory(entry);
     var hint = $('blHint');
@@ -1578,12 +1738,12 @@
   function formatIceWaterLabel(hotWater, ice) {
     var hot = (hotWater != null) ? hotWater : '—';
     var iceAmount = (ice != null) ? ice : '—';
-    return '湯' + hot + 'g / 氷' + iceAmount + 'g';
+    return 'Hot ' + hot + 'g / Ice ' + iceAmount + 'g';
   }
   function formatIceWaterLabelHtml(hotWater, ice) {
     var hot = (hotWater != null) ? hotWater : '—';
     var iceAmount = (ice != null) ? ice : '—';
-    return '<span class="ice-water-stack"><span>湯' + hot + 'g</span><span>氷' + iceAmount + 'g</span></span>';
+    return '<span class="ice-water-stack"><span>Hot ' + hot + 'g</span><span>Ice ' + iceAmount + 'g</span></span>';
   }
   function getHistoryEntriesForDisplay() {
     var stored = readHistory();
@@ -1694,15 +1854,27 @@
   $('hdNote').addEventListener('input', function () { hdEditState.note = this.value; });
   $('hdSave').addEventListener('click', function () {
     var hint = $('hdHint');
+    var existingEquipment =
+      (selectedEntry && selectedEntry.equipment && typeof selectedEntry.equipment === 'object')
+        ? selectedEntry.equipment : {};
+    var nextGrind =
+      hdEditState.equipment.beanGrind ||
+      existingEquipment.grind ||
+      existingEquipment.beanGrind || '';
     var patch = {
-      equipment: { beanGrind: hdEditState.equipment.beanGrind, dripper: hdEditState.equipment.dripper, temperature: hdEditState.equipment.temperature },
+      equipment: Object.assign({}, existingEquipment, {
+        beanGrind:   nextGrind,
+        grind:       nextGrind,
+        dripper:     hdEditState.equipment.dripper,
+        temperature: hdEditState.equipment.temperature
+      }),
       tags: hdEditState.tags.slice(),
       note: hdEditState.note
     };
     var ok = updateHistoryEntry(selectedEntry ? selectedEntry.id : null, selectedEntryIndex, patch);
     if (ok) {
       if (selectedEntry) { selectedEntry.equipment = patch.equipment; selectedEntry.tags = patch.tags; selectedEntry.note = patch.note; }
-      hint.textContent = '記録を更新しました'; hint.classList.add('saved');
+      showScreen('history');
     } else {
       hint.textContent = '保存できませんでした。端末の空き容量またはブラウザ設定を確認してください。'; hint.classList.remove('saved');
     }
@@ -1732,7 +1904,17 @@
       e.strengthId ||
       strengthNameToId(e.strength || defaults.strength || 'しっかり');
 
-    saveBrewDraft({ method: methodId, dose: dose, ratio: ratio, flavor: flavorId, strength: strengthId });
+    var rebrewDraft = { method: methodId, dose: dose, ratio: ratio, flavor: flavorId, strength: strengthId };
+    if (e.equipment && typeof e.equipment === 'object') {
+      rebrewDraft.equipment = {
+        bean:        e.equipment.bean        || '',
+        grind:       e.equipment.grind || e.equipment.beanGrind || '',
+        temperature: e.equipment.temperature || '',
+        grinder:     e.equipment.grinder     || '',
+        dripper:     e.equipment.dripper     || ''
+      };
+    }
+    saveBrewDraft(rebrewDraft);
     showScreen('recipeSetup');
   });
 
@@ -1747,24 +1929,25 @@
 
   RENDERERS.settings = function () {
     var s = readSettings(), db = s.defaultBrew, ba = s.brewAssist;
-    $('stMethod').textContent = db.method;
-    $('stDose').textContent = db.dose + 'g';
-    $('stRatio').textContent = '1:' + db.ratio;
-    $('stFlavor').textContent = db.flavor;
-    $('stStrength').textContent = db.strength;
-    stSetState('stScreen', ba.keepScreenAwake);
-    stSetState('stSound', ba.soundCues);
-    stSetState('stHaptic', ba.hapticCues);
+    $('stMethodSel').value = db.method;
+    $('stDoseSel').value = String(db.dose);
+    $('stRatioSel').value = String(db.ratio);
+    $('stFlavorSel').value = db.flavor;
+    $('stStrengthSel').value = db.strength;
+    $('stScreenChk').checked = !!ba.keepScreenAwake;
+    $('stSoundChk').checked = !!ba.soundCues;
+    $('stHapticChk').checked = !!ba.hapticCues;
+    $('stScreenChk').setAttribute('aria-checked', ba.keepScreenAwake ? 'true' : 'false');
+    $('stSoundChk').setAttribute('aria-checked', ba.soundCues ? 'true' : 'false');
+    $('stHapticChk').setAttribute('aria-checked', ba.hapticCues ? 'true' : 'false');
     $('stCount').textContent = readHistory().length;
   };
-  function stSetState(id, on) {
-    var el = $(id); el.textContent = on ? 'On' : 'Off';
-    el.classList.toggle('on', !!on); el.classList.toggle('off', !on);
-  }
   function stSaveSettings(patch) {
     var s = readSettings();
     if (patch.defaultBrew) s.defaultBrew = Object.assign({}, s.defaultBrew, patch.defaultBrew);
     if (patch.brewAssist) s.brewAssist = Object.assign({}, s.brewAssist, patch.brewAssist);
+    if (patch.equipmentDefaults) s.equipmentDefaults = Object.assign({}, s.equipmentDefaults, patch.equipmentDefaults);
+    if (patch.equipmentPresets) s.equipmentPresets = Object.assign({}, s.equipmentPresets, patch.equipmentPresets);
     writeJSON(K_SETTINGS, s);
     return s;
   }
@@ -1772,30 +1955,32 @@
     var el = $('stHint'); el.textContent = msg; el.classList.add('is-visible');
     clearTimeout(el._t); el._t = setTimeout(function () { el.classList.remove('is-visible'); }, 3000);
   }
-  function stCycleBrewDefault(field, list, displayId, fmt) {
-    var cur = readSettings().defaultBrew[field];
-    var idx = list.indexOf(cur); if (idx < 0) idx = 0;
-    var next = list[(idx + 1) % list.length];
-    var patch = {}; patch[field] = next;
-    stSaveSettings({ defaultBrew: patch });
-    $(displayId).textContent = fmt ? fmt(next) : next;
-    stShowHint('設定を保存しました');
-  }
-  $('stMethodRow').addEventListener('click', function () { stCycleBrewDefault('method', ST_METHODS, 'stMethod', null); });
-  $('stDoseRow').addEventListener('click', function () { stCycleBrewDefault('dose', ST_DOSES, 'stDose', function (v) { return v + 'g'; }); });
-  $('stRatioRow').addEventListener('click', function () { stCycleBrewDefault('ratio', ST_RATIOS, 'stRatio', function (v) { return '1:' + v; }); });
-  $('stFlavorRow').addEventListener('click', function () { stCycleBrewDefault('flavor', ST_FLAVORS, 'stFlavor', null); });
-  $('stStrengthRow').addEventListener('click', function () { stCycleBrewDefault('strength', ST_STRENGTHS, 'stStrength', null); });
+  $('stMethodSel').addEventListener('change', function () {
+    stSaveSettings({ defaultBrew: { method: this.value } }); stShowHint('設定を保存しました');
+  });
+  $('stDoseSel').addEventListener('change', function () {
+    stSaveSettings({ defaultBrew: { dose: Number(this.value) } }); stShowHint('設定を保存しました');
+  });
+  $('stRatioSel').addEventListener('change', function () {
+    stSaveSettings({ defaultBrew: { ratio: Number(this.value) } }); stShowHint('設定を保存しました');
+  });
+  $('stFlavorSel').addEventListener('change', function () {
+    stSaveSettings({ defaultBrew: { flavor: this.value } }); stShowHint('設定を保存しました');
+  });
+  $('stStrengthSel').addEventListener('change', function () {
+    stSaveSettings({ defaultBrew: { strength: this.value } }); stShowHint('設定を保存しました');
+  });
 
-  function stToggleAssist(key, stateId) {
-    var s = readSettings(); var patch = {}; patch[key] = !s.brewAssist[key];
-    var ns = stSaveSettings({ brewAssist: patch });
-    stSetState(stateId, ns.brewAssist[key]);
+  function stToggleAssistChk(chkId, key) {
+    var checked = $(chkId).checked;
+    $(chkId).setAttribute('aria-checked', checked ? 'true' : 'false');
+    var patch = {}; patch[key] = checked;
+    stSaveSettings({ brewAssist: patch });
     stShowHint('設定を保存しました');
   }
-  $('stScreenRow').addEventListener('click', function () { stToggleAssist('keepScreenAwake', 'stScreen'); });
-  $('stSoundRow').addEventListener('click', function () { stToggleAssist('soundCues', 'stSound'); });
-  $('stHapticRow').addEventListener('click', function () { stToggleAssist('hapticCues', 'stHaptic'); });
+  $('stScreenChk').addEventListener('change', function () { stToggleAssistChk('stScreenChk', 'keepScreenAwake'); });
+  $('stSoundChk').addEventListener('change', function () { stToggleAssistChk('stSoundChk', 'soundCues'); });
+  $('stHapticChk').addEventListener('change', function () { stToggleAssistChk('stHapticChk', 'hapticCues'); });
 
   /* ============ Data helpers ============ */
   function exportDateStamp() {
@@ -1822,7 +2007,7 @@
       var payload = {
         app: 'Pourō-Claude', exportType: 'full',
         exportedAt: new Date().toISOString(),
-        schemaVersion: 1, cacheVersion: 'pouro-v1.16.0',
+        schemaVersion: 1, cacheVersion: 'pouro-v1.17.0',
         data: {
           settings: readSettings(),
           history: readHistory(),
