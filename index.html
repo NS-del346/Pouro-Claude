@@ -401,6 +401,46 @@
   #screen-settings .about-tag { font-family: var(--font-serif); font-style: italic; font-size: 15px; color: var(--ink); opacity: 0.85; margin-bottom: 12px; }
   #screen-settings .about-line { font-size: 13.5px; color: var(--sub); line-height: 1.65; }
   #screen-settings .about-line.ja { margin-top: 2px; }
+
+  /* ===================================================================
+     8) HISTORY DETAIL
+     =================================================================== */
+  #screen-historyDetail .header { position: relative; z-index: 1; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; padding: 7px 18px 2px; }
+  #screen-historyDetail .header-titles { text-align: center; }
+  #screen-historyDetail .header-title { font-size: 18px; font-weight: 600; color: var(--ink); }
+  #screen-historyDetail .header-sub { font-size: 12.5px; color: var(--sub); margin-top: 1px; }
+  #screen-historyDetail .scroll-content { padding: 8px 22px 0; }
+  #screen-historyDetail .hd-meta { margin-bottom: 14px; }
+  #screen-historyDetail .hd-date { font-size: 13px; color: var(--sub); font-variant-numeric: tabular-nums; }
+  #screen-historyDetail .hd-method { font-size: 26px; font-weight: 700; color: var(--ink); margin-top: 3px; line-height: 1.1; }
+  #screen-historyDetail .hd-snap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 13px 16px 12px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(28,22,18,0.04); }
+  #screen-historyDetail .snap-row { display: grid; grid-template-columns: repeat(3, 1fr); }
+  #screen-historyDetail .snap-row.two { grid-template-columns: repeat(2, 1fr); max-width: 70%; margin: 9px auto 0; padding-top: 9px; border-top: 1px solid var(--border); }
+  #screen-historyDetail .snap-stat { text-align: center; padding: 0 4px; }
+  #screen-historyDetail .snap-stat + .snap-stat { border-left: 1px solid var(--border); }
+  #screen-historyDetail .snap-label { font-size: 11px; color: var(--sub); letter-spacing: 0.05em; }
+  #screen-historyDetail .snap-value { font-size: 16px; font-weight: 600; color: var(--ink); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  #screen-historyDetail .snap-note { margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 12px; color: var(--sub); line-height: 1.5; text-wrap: pretty; }
+  #screen-historyDetail .section-label { font-size: 15px; font-weight: 600; color: var(--ink); letter-spacing: 0.04em; margin-bottom: 10px; margin-top: 18px; }
+  #screen-historyDetail .equipment { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 4px 14px; }
+  #screen-historyDetail .eq-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; }
+  #screen-historyDetail .eq-row + .eq-row { border-top: 1px solid var(--border); }
+  #screen-historyDetail .eq-key { flex: 0 0 72px; font-size: 13px; color: var(--sub); }
+  #screen-historyDetail .eq-input { flex: 1; background: none; border: none; font-family: var(--font-sans); font-size: 14px; color: var(--ink); padding: 2px 0; min-width: 0; }
+  #screen-historyDetail .eq-input:focus { outline: none; }
+  #screen-historyDetail .tags { display: flex; flex-wrap: wrap; gap: 9px; }
+  #screen-historyDetail .tag { background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 9px 16px; font-family: inherit; font-size: 13.5px; color: var(--ink); cursor: pointer; transition: border-color 120ms ease, color 120ms ease, opacity 120ms ease; }
+  #screen-historyDetail .tag.selected { border-color: var(--accent); border-width: 1.5px; color: var(--accent); }
+  #screen-historyDetail .tag.disabled { opacity: 0.4; cursor: default; }
+  #screen-historyDetail .note-area { width: 100%; min-height: 80px; resize: vertical; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-family: var(--font-sans); font-size: 14px; line-height: 1.6; color: var(--ink); }
+  #screen-historyDetail .note-area::placeholder { color: var(--sub); opacity: 0.7; }
+  #screen-historyDetail .note-area:focus { outline: none; border-color: var(--accent); }
+  #screen-historyDetail .hd-footer { position: relative; z-index: 2; padding: 10px 22px calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 9px; background: linear-gradient(to top, var(--bg) 70%, rgba(245,240,232,0)); }
+  #screen-historyDetail .rebrew-btn { display: block; width: 100%; background: var(--card); border: 1.5px solid var(--border); border-radius: 13px; padding: 13px; font-family: var(--font-sans); font-size: 15px; font-weight: 500; color: var(--ink); cursor: pointer; letter-spacing: 0.03em; transition: border-color 130ms ease, background 130ms ease; }
+  #screen-historyDetail .rebrew-btn:hover { border-color: var(--accent); background: rgba(176,125,79,0.04); }
+  #screen-historyDetail .rebrew-btn:active { transform: scale(0.99); }
+  #screen-historyDetail .cta-hint { text-align: center; font-size: 12px; color: var(--sub); opacity: 0.85; }
+  #screen-historyDetail .cta-hint.saved { color: var(--accent); opacity: 1; }
 </style>
 </head>
 <body>
@@ -579,6 +619,40 @@
           <h2>まだ記録がありません</h2>
           <p>抽出を保存すると履歴に追加されます。</p>
         </div>
+      </div>
+    </section>
+
+    <!-- ===================== 8) HISTORY DETAIL ===================== -->
+    <section class="screen" id="screen-historyDetail" data-screen-label="History Detail">
+      <div class="amb-glow"></div>
+      <svg class="amb-line" viewBox="0 0 200 667" aria-hidden="true" preserveAspectRatio="xMidYMid slice"><path d="M160 -20 C 110 160, 180 320, 130 500 C 110 580, 150 620, 120 700"/><path d="M220 40 C 180 180, 230 340, 190 520"/></svg>
+      <header class="header">
+        <button class="back" id="hdBack" aria-label="履歴へ戻る"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12l7 7"/></svg></button>
+        <div class="header-titles"><div class="header-title">抽出記録</div><div class="header-sub">前回の条件とメモ</div></div>
+        <div></div>
+      </header>
+      <div class="scroll-content">
+        <div class="hd-meta">
+          <div class="hd-date" id="hdDate"></div>
+          <div class="hd-method" id="hdMethod"></div>
+        </div>
+        <div class="hd-snap" id="hdSnap"></div>
+        <div class="section-label">記録を編集</div>
+        <div class="equipment">
+          <div class="eq-row"><label class="eq-key" for="hdBean">豆 / 挽き目</label><input class="eq-input" id="hdBean" type="text" autocomplete="off" placeholder="—"></div>
+          <div class="eq-row"><label class="eq-key" for="hdDripper">ドリッパー</label><input class="eq-input" id="hdDripper" type="text" autocomplete="off" placeholder="—"></div>
+          <div class="eq-row"><label class="eq-key" for="hdTemp">湯温</label><input class="eq-input" id="hdTemp" type="text" autocomplete="off" placeholder="—"></div>
+        </div>
+        <div class="section-label">味の印象</div>
+        <div class="tags" id="hdTags"></div>
+        <div class="section-label">メモ</div>
+        <textarea class="note-area" id="hdNote" placeholder="気づきやメモを残す"></textarea>
+        <div style="height: 8px;"></div>
+      </div>
+      <div class="hd-footer">
+        <button class="cta" id="hdSave">変更を保存</button>
+        <button class="rebrew-btn" id="hdRebrew">もう一度淹れる</button>
+        <div class="cta-hint" id="hdHint"></div>
       </div>
     </section>
 
@@ -782,6 +856,21 @@
       }
     }
   }
+  function updateHistoryEntry(entryId, entryIndex, patch) {
+    var list = readHistory();
+    var idx = -1;
+    if (entryId) {
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].id === entryId) { idx = i; break; }
+      }
+    }
+    if (idx < 0 && entryIndex >= 0 && entryIndex < list.length) idx = entryIndex;
+    if (idx < 0) return false;
+    for (var k in patch) list[idx][k] = patch[k];
+    try { localStorage.setItem(K_HISTORY, JSON.stringify(list)); return true; }
+    catch (e) { return false; }
+  }
+
   function readSettings() {
     var p = readJSON(K_SETTINGS, null);
     if (!p || typeof p !== 'object') return DEFAULT_SETTINGS;
@@ -930,7 +1019,7 @@
      SCREEN MANAGEMENT
      =================================================================== */
   var TAB_HIDDEN = { activeBrew: true, brewLog: true };
-  var TAB_ACTIVE = { brewHome: 'brew', recipeSetup: 'brew', preview: 'brew', history: 'history', settings: 'settings' };
+  var TAB_ACTIVE = { brewHome: 'brew', recipeSetup: 'brew', preview: 'brew', history: 'history', historyDetail: 'history', settings: 'settings' };
   var RENDERERS = {};
   var currentScreen = null;
 
@@ -1411,7 +1500,7 @@
         '<div class="card-recipe"><div class="recipe-summary">' + recipe + '</div>' + (tagsHtml ? '<div class="card-tags">' + tagsHtml + '</div>' : '<div></div>') + '</div>' +
         (e.note ? '<div class="card-note">' + escapeHtml(e.note) + '</div>' : '') +
         (equip ? '<div class="card-equip">' + escapeHtml(equip) + '</div>' : '');
-      card.addEventListener('click', function () { console.log('open history detail', e.id); });
+      card.addEventListener('click', function () { openHistoryDetail(e, i); });
       list.appendChild(card);
     });
   };
@@ -1421,6 +1510,130 @@
     return '<div class="rating-row">' + h + '</div>';
   }
   function HISTORY_SAMPLES() { return []; } // USE_SAMPLE_DATA=false: 空
+
+  /* ===================================================================
+     8) HISTORY DETAIL
+     =================================================================== */
+  var selectedEntry = null;
+  var selectedEntryIndex = -1;
+  var hdEditState = { equipment: {}, tags: [], note: '' };
+
+  function openHistoryDetail(entry, index) {
+    selectedEntry = entry;
+    selectedEntryIndex = index;
+    showScreen('historyDetail');
+  }
+
+  function hdRenderSnap(e) {
+    var el = $('hdSnap'); el.innerHTML = '';
+    var isIce = !!(e.isIce);
+    var isHybrid = !!(e.isHybrid);
+    var methodId = methodNameToId(e.method || '');
+    var waterLabel = isIce && e.hotWater != null
+      ? ('湯 ' + e.hotWater + 'g + 氷 ' + (e.ice != null ? e.ice : '—') + 'g')
+      : (e.water != null ? e.water + 'g' : '—');
+
+    var r1 = document.createElement('div'); r1.className = 'snap-row';
+    r1.innerHTML =
+      '<div class="snap-stat"><div class="snap-label">Coffee</div><div class="snap-value">' + escapeHtml(e.dose != null ? e.dose + 'g' : '—') + '</div></div>' +
+      '<div class="snap-stat"><div class="snap-label">Water</div><div class="snap-value">' + escapeHtml(waterLabel) + '</div></div>' +
+      '<div class="snap-stat"><div class="snap-label">Ratio</div><div class="snap-value">' + escapeHtml(e.ratio != null ? '1:' + e.ratio : '—') + '</div></div>';
+    el.appendChild(r1);
+
+    var r2 = document.createElement('div'); r2.className = 'snap-row two';
+    r2.innerHTML =
+      '<div class="snap-stat"><div class="snap-label">Pours</div><div class="snap-value">' + escapeHtml(e.pours || '—') + '</div></div>' +
+      '<div class="snap-stat"><div class="snap-label">Drawdown</div><div class="snap-value">' + escapeHtml(e.drawdown || '—') + '</div></div>';
+    el.appendChild(r2);
+
+    var noteText = '';
+    if (methodId === 'yon-roku') {
+      var backPoursStr = (typeof e.pours === 'string' && e.pours.indexOf('2 + ') === 0) ? e.pours.substring(4) : '?';
+      noteText = '前半2投で味を整え、後半' + backPoursStr + '投で濃度を調整。';
+      if (e.flavor) noteText += '　味：' + e.flavor;
+      if (e.strength) noteText += '　強度：' + e.strength;
+    } else if (isHybrid) {
+      noteText = '器具：' + (e.methodEquipment || 'HARIO Switch系') + '。前半透過・後半浸漬→排出。';
+    } else if (isIce) {
+      noteText = '急冷アイス。湯 ' + (e.hotWater != null ? e.hotWater : '—') + 'g + 氷 ' + (e.ice != null ? e.ice : '—') + 'g。';
+    } else if (methodId === 'neo') {
+      noteText = '高濃度で10投して引き出し、加水で仕上げる。';
+    }
+    if (noteText) {
+      var noteEl = document.createElement('div'); noteEl.className = 'snap-note';
+      noteEl.textContent = noteText;
+      el.appendChild(noteEl);
+    }
+  }
+
+  function hdRenderTags() {
+    var el = $('hdTags'); el.innerHTML = '';
+    var atMax = hdEditState.tags.length >= MAX_TAGS;
+    TAG_OPTIONS.forEach(function (t) {
+      var sel = hdEditState.tags.indexOf(t) >= 0;
+      var b = document.createElement('button');
+      b.className = 'tag' + (sel ? ' selected' : '') + ((!sel && atMax) ? ' disabled' : '');
+      b.textContent = t;
+      b.addEventListener('click', function () {
+        var i = hdEditState.tags.indexOf(t);
+        if (i >= 0) hdEditState.tags.splice(i, 1);
+        else { if (hdEditState.tags.length >= MAX_TAGS) return; hdEditState.tags.push(t); }
+        hdRenderTags();
+      });
+      el.appendChild(b);
+    });
+  }
+
+  RENDERERS.historyDetail = function () {
+    if (!selectedEntry) { showScreen('history'); return; }
+    var e = selectedEntry;
+    $('hdDate').textContent = formatDate(e.createdAt || '');
+    $('hdMethod').textContent = e.method || '—';
+    hdRenderSnap(e);
+    var eq = (e.equipment && typeof e.equipment === 'object') ? e.equipment : {};
+    hdEditState = {
+      equipment: { beanGrind: eq.beanGrind || '', dripper: eq.dripper || '', temperature: eq.temperature || '' },
+      tags: Array.isArray(e.tags) ? e.tags.slice() : [],
+      note: e.note || ''
+    };
+    $('hdBean').value = hdEditState.equipment.beanGrind;
+    $('hdDripper').value = hdEditState.equipment.dripper;
+    $('hdTemp').value = hdEditState.equipment.temperature;
+    $('hdNote').value = hdEditState.note;
+    var hint = $('hdHint'); hint.textContent = ''; hint.classList.remove('saved');
+    hdRenderTags();
+  };
+  $('hdBack').addEventListener('click', function () { showScreen('history'); });
+  $('hdBean').addEventListener('input', function () { hdEditState.equipment.beanGrind = this.value; });
+  $('hdDripper').addEventListener('input', function () { hdEditState.equipment.dripper = this.value; });
+  $('hdTemp').addEventListener('input', function () { hdEditState.equipment.temperature = this.value; });
+  $('hdNote').addEventListener('input', function () { hdEditState.note = this.value; });
+  $('hdSave').addEventListener('click', function () {
+    var hint = $('hdHint');
+    var patch = {
+      equipment: { beanGrind: hdEditState.equipment.beanGrind, dripper: hdEditState.equipment.dripper, temperature: hdEditState.equipment.temperature },
+      tags: hdEditState.tags.slice(),
+      note: hdEditState.note
+    };
+    var ok = updateHistoryEntry(selectedEntry ? selectedEntry.id : null, selectedEntryIndex, patch);
+    if (ok) {
+      if (selectedEntry) { selectedEntry.equipment = patch.equipment; selectedEntry.tags = patch.tags; selectedEntry.note = patch.note; }
+      hint.textContent = '記録を更新しました'; hint.classList.add('saved');
+    } else {
+      hint.textContent = '保存できませんでした。端末の空き容量またはブラウザ設定を確認してください。'; hint.classList.remove('saved');
+    }
+  });
+  $('hdRebrew').addEventListener('click', function () {
+    if (!selectedEntry) return;
+    var e = selectedEntry;
+    var methodId = methodNameToId(e.method || '') || 'yon-roku';
+    var dose = (typeof e.dose === 'number') ? e.dose : DEFAULT_SETTINGS.defaultBrew.dose;
+    var ratio = (typeof e.ratio === 'number') ? e.ratio : DEFAULT_SETTINGS.defaultBrew.ratio;
+    var flavorId = flavorNameToId(e.flavor || '') || 'balanced';
+    var strengthId = strengthNameToId(e.strength || '') || 'standard';
+    saveBrewDraft({ method: methodId, dose: dose, ratio: ratio, flavor: flavorId, strength: strengthId });
+    showScreen('recipeSetup');
+  });
 
   /* ===================================================================
      7) SETTINGS
