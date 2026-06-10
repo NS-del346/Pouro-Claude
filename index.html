@@ -53,17 +53,14 @@
   .app {
     width: 100%;
     max-width: 375px;
-    height: 100svh; /* stable: doesn't jump with iOS dynamic chrome */
+    height: 100vh; /* fallback for browsers without svh support */
+    height: 100svh; /* stable small viewport — doesn't shift with iOS dynamic chrome */
     margin: 0 auto;
     position: relative;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     background: var(--bg);
-  }
-  @supports (-webkit-touch-callout: none) {
-    /* iOS standalone PWA: use fill-available to match true screen height */
-    .app { height: -webkit-fill-available; }
   }
 
   /* Screens: only the active one shows */
@@ -113,7 +110,7 @@
     position: relative; z-index: 2;
     flex-shrink: 0; /* prevent tabbar from being compressed in flex layout */
     display: grid; grid-template-columns: repeat(3, 1fr); align-items: center;
-    padding: 10px 0 max(10px, calc(10px + env(safe-area-inset-bottom)));
+    padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--border);
     background: rgba(245,240,232,0.78);
     -webkit-backdrop-filter: blur(8px);
@@ -161,7 +158,7 @@
   /* ===================================================================
      1) BREW HOME
      =================================================================== */
-  #screen-brewHome .content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; padding: 8px 22px 0; min-height: 0; }
+  #screen-brewHome .content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; padding: 8px 22px 10px; min-height: 0; }
   #screen-brewHome .brand { text-align: center; padding-top: 10px; }
   #screen-brewHome .logo { font-family: var(--font-serif); font-size: 46px; font-weight: 400; letter-spacing: 0.01em; line-height: 1; color: var(--ink); }
   #screen-brewHome .tagline { font-family: var(--font-serif); font-style: italic; font-size: 16px; color: var(--sub); margin-top: 9px; }
@@ -284,7 +281,7 @@
   #screen-activeBrew .instruction { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 13px 16px; margin-top: 20px; box-shadow: 0 2px 10px rgba(28,22,18,0.04); }
   #screen-activeBrew .instruction p { font-size: 14px; line-height: 1.6; color: var(--ink); text-wrap: pretty; }
   #screen-activeBrew .next-preview { font-size: 13.5px; color: var(--sub); margin-top: 16px; font-variant-numeric: tabular-nums; }
-  #screen-activeBrew .controls { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 12px; padding: 12px 22px calc(16px + env(safe-area-inset-bottom, 0px)); }
+  #screen-activeBrew .controls { position: relative; z-index: 1; flex-shrink: 0; display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 12px; padding: 12px 22px calc(16px + env(safe-area-inset-bottom, 0px)); }
   #screen-activeBrew .ctrl { font-family: var(--font-sans); font-size: 15px; font-weight: 500; letter-spacing: 0.02em; border-radius: 999px; padding: 14px 0; cursor: pointer; transition: opacity 130ms ease, transform 130ms ease, background 130ms ease; }
   #screen-activeBrew .ctrl.outline { background: var(--card); border: 1px solid var(--border); color: var(--ink); }
   #screen-activeBrew .ctrl.outline:hover { background: #FBF6EE; }
