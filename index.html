@@ -680,7 +680,7 @@
       descTitle: 'Hybrid',
       descBody: '浸漬の甘さと、透過の抜けをあわせ持つ。HARIO Switch（または同等の開閉機構付きドリッパー）を使用。静かに整えたい日に向く抽出。',
       equipment: 'HARIO Switch または同等の開閉機構付きドリッパー',
-      pours: 4, interval: 'variable', intervalSec: 40, draw: '3:20', drawSec: 200,
+      pours: 3, interval: 'variable', intervalSec: 30, draw: '3:00', drawSec: 180,
       icon: '<span class="ico ico-method-hybrid"></span>'
     },
     'neo': {
@@ -753,7 +753,7 @@
 
   /* ============ Draft / Active / History / Settings ============ */
   var DEFAULT_SETTINGS = {
-    defaultBrew: { method: '4:6 Method', dose: 18, ratio: 15, flavor: 'ベーシック', strength: '標準' },
+    defaultBrew: { method: '4:6 Method', dose: 18, ratio: 15, flavor: 'ベーシック', strength: 'しっかり' },
     brewAssist: { keepScreenAwake: true, soundCues: false, hapticCues: false }
   };
 
@@ -835,39 +835,36 @@
       };
     }
     if (m.id === 'hybrid') {
-      // HARIO Switch方式：前半60%浸漬(Switch閉)、後半40%透過(Switch開)
-      var hFront = (water == null) ? null : Math.round(water * 0.6);
-      var hBack = (water == null) ? null : (water - hFront);
-      var hFrontAmounts = (hFront == null) ? null : splitEvenly(hFront, 2);
-      var hBackAmounts = (hBack == null) ? null : splitEvenly(hBack, 2);
-      var hAmounts = (hFrontAmounts && hBackAmounts) ? hFrontAmounts.concat(hBackAmounts) : null;
-      var hSteps = [0, 40, 120, 160];
+      // HARIO Switch方式：3投注湯 + Switch open/close + 湯温低下指示（3:3:8配分）
+      var h1 = (water == null) ? null : Math.round(water * 3 / 14);
+      var h2 = (water == null) ? null : Math.round(water * 3 / 14);
+      var h3 = (water == null) ? null : (water - h1 - h2);
+      var hAmounts = (h1 == null) ? null : [h1, h2, h3];
+      var hSteps = [0, 30, 75];
       var hNotes = [
-        '【Switch を閉じる】浸漬フェーズ開始。中心から外側へゆっくり注ぐ。',
-        '浸漬フェーズ注湯。Switch は閉じたまま。中心から外側へ。',
-        '【Switch を開ける】透過フェーズ開始。注湯。',
-        '透過フェーズ注湯。湯温をやや下げると甘さが増す。'
+        '0:00 Switch open。中心から外側へゆっくり1投目注湯。',
+        '0:30 Switch open のまま2投目注湯。0:45〜1:15 湯温を約70℃へ下げる。',
+        '1:15 Switch close。3投目注湯。→ 1:45 Switch open して落とし切る。'
       ];
       return {
         methodId: m.id, method: m.name, dose: dose, ratio: ratio, water: water,
         flavor: flavorIdToName(draft.flavor), strength: strengthIdToName(draft.strength),
-        pours: '4', totalPours: 4, pourAmounts: hAmounts,
-        immersionWater: hFront, drawdownWater: hBack,
-        interval: 'variable', intervalSec: 40, drawdown: '3:20', drawdownSec: 200,
+        pours: '3', totalPours: 3, pourAmounts: hAmounts,
+        interval: 'variable', intervalSec: 30, drawdown: '3:00', drawdownSec: 180,
         stepTimesSec: hSteps, notes: hNotes,
         equipment: m.equipment,
         is46: false, isHybrid: true
       };
     }
     if (m.id === 'neo') {
-      var nPours = 10, nSteps = [];
-      for (var j = 0; j < nPours; j++) nSteps.push(j * 15);
+      var nPours = 10;
+      var nSteps = [0, 30, 45, 60, 75, 90, 105, 120, 135, 150];
       var nAmounts = (water == null) ? null : splitEvenly(water, nPours);
       var nNotes = [];
       for (var ni = 0; ni < nPours; ni++) {
-        if (ni === 0) nNotes.push('1投目：蒸らし注湯。中心から外側へゆっくり。');
+        if (ni === 0) nNotes.push('1投目：蒸らし注湯。中心から外側へゆっくり。30秒後に2投目。');
         else if (ni < nPours - 1) nNotes.push((ni + 1) + '投目：15秒リズムで注湯。中心から外側へ。');
-        else nNotes.push('10投目：最終注湯。均一に仕上げる。');
+        else nNotes.push('10投目：最終注湯。均一に仕上げる。落ち切り目安 3:30〜4:00。');
       }
       return {
         methodId: m.id, method: m.name, dose: dose, ratio: ratio, water: water,
@@ -879,10 +876,10 @@
       };
     }
     if (m.id === 'ice') {
-      // 急冷アイス：Total = dose × ratio、Hot water ≈ 60%、Ice ≈ 40%
-      var iTotal = water;
-      var iHot = (iTotal == null) ? null : Math.round(iTotal * 0.6);
-      var iIce = (iTotal == null) ? null : (iTotal - iHot);
+      // 急冷アイス：Hot = dose × 7.5、Ice = dose × 4
+      var iHot = (dose == null) ? null : Math.round(dose * 7.5);
+      var iIce = (dose == null) ? null : Math.round(dose * 4);
+      var iTotal = (iHot == null) ? null : (iHot + iIce);
       var iPours = 5, iSteps = [];
       for (var ij = 0; ij < iPours; ij++) iSteps.push(ij * 30);
       var iAmounts = (iHot == null) ? null : splitEvenly(iHot, iPours);
@@ -996,7 +993,7 @@
   /* ===================================================================
      2) RECIPE SETUP
      =================================================================== */
-  var rsState = { method: 'yon-roku', dose: 18, ratio: 15, flavor: 'balanced', strength: 'standard' };
+  var rsState = { method: 'yon-roku', dose: 18, ratio: 15, flavor: 'balanced', strength: 'strong' };
   var rsBuilt = false;
   function rsInitFromDraft() {
     var d = loadBrewDraft(), s = readSettings();
@@ -1075,9 +1072,9 @@
       var sObj = findById(STRENGTHS, rsState.strength) || STRENGTHS[1];
       $('rsNote').textContent = '前半2投（全体の40%）で味を整え、後半' + sObj.backPours + '投（60%）で濃度を調整。';
     } else if (c.isHybrid) {
-      $('rsNote').textContent = '要：' + m.equipment + '。前半Switch閉じて浸漬、後半Switch開けて透過。';
+      $('rsNote').textContent = '要：' + m.equipment + '。3投注湯。0:00・0:30 Switch open、1:15 Switch close で浸漬注湯。';
     } else if (c.isIce) {
-      $('rsNote').textContent = '氷はサーバー（またはグラス）に入れて準備。Hot ' + (c.hotWater || '—') + 'g で抽出し急冷。Total ' + (c.water || '—') + 'g。';
+      $('rsNote').textContent = '氷はサーバー（またはグラス）に入れて準備。Hot ' + (c.hotWater || '—') + 'g で抽出、Ice ' + (c.ice || '—') + 'g で急冷。';
     } else {
       $('rsNote').textContent = m.descBody;
     }
@@ -1109,9 +1106,9 @@
     if (c.is46) {
       $('pvNote').textContent = '前半2投（全体の40%）で味を整え、後半' + c.backPours + '投（60%）で濃度を調整。';
     } else if (c.isHybrid) {
-      $('pvNote').textContent = '器具：' + c.equipment + '。前半Switch閉→浸漬、後半Switch開→透過。';
+      $('pvNote').textContent = '器具：' + c.equipment + '。3投注湯。0:00・0:30 Switch open、1:15 Switch close 浸漬、1:45 Switch open で落とし切る。';
     } else if (c.isIce) {
-      $('pvNote').textContent = '氷 ' + (c.ice || '—') + 'g をサーバーに入れて準備。Hot ' + (c.hotWater || '—') + 'g を5投で注ぎ急冷。Total ' + (c.water || '—') + 'g。';
+      $('pvNote').textContent = '氷 ' + (c.ice || '—') + 'g をサーバーに入れて準備。Hot ' + (c.hotWater || '—') + 'g を5投で注ぎ急冷。仕上がり量は氷の融け具合による。';
     } else {
       $('pvNote').textContent = METHODS[c.methodId].descBody;
     }
@@ -1124,8 +1121,8 @@
       if (c.is46) {
         tlLabel = (i < 2) ? ('前半' + (i + 1) + '投目') : ('後半' + (i - 1) + '投目');
       } else if (c.isHybrid) {
-        if (i < 2) { tlLabel = '浸漬' + (i + 1) + '投目（Switch閉）'; }
-        else { tlLabel = (i === 2 ? '透過1投目（Switch開）' : '透過2投目'); }
+        if (i < 2) { tlLabel = (i + 1) + '投目（Switch open）'; }
+        else { tlLabel = '3投目（Switch close）'; }
       } else {
         tlLabel = (i + 1) + '投目';
       }
@@ -1136,7 +1133,7 @@
     if (c.isIce) {
       $('pvRinse').textContent = '氷 ' + (c.ice || '—') + 'g をサーバーまたはグラスに入れて準備。ペーパーを湯通しし、サーバーは温めずに使用。';
     } else if (c.isHybrid) {
-      $('pvRinse').textContent = 'ペーパーを湯通し後、Switch を閉じた状態でセット。前半は浸漬（Switch閉）、後半は透過（Switch開）。';
+      $('pvRinse').textContent = 'ペーパーを湯通し後、Switch を開いた状態でセット。0:45〜1:15 の間に湯温を約70℃へ下げる。';
     } else {
       $('pvRinse').textContent = 'ペーパーを湯通しし、サーバーを温めてから抽出を始めます。';
     }
@@ -1294,7 +1291,7 @@
     } else if (a.isHybrid) {
       $('blNote').textContent = '器具：' + (a.equipment || 'HARIO Switch系') + '。浸漬×透過ハイブリッド抽出。';
     } else if (a.isIce) {
-      $('blNote').textContent = '急冷アイス。Hot ' + (a.hotWater || '—') + 'g + Ice ' + (a.ice || '—') + 'g = Total ' + (a.water || '—') + 'g。';
+      $('blNote').textContent = '急冷アイス。Hot ' + (a.hotWater || '—') + 'g + Ice ' + (a.ice || '—') + 'g。仕上がり量は氷の融け具合による。';
     } else {
       $('blNote').textContent = (METHODS[a.methodId] ? METHODS[a.methodId].descBody : '');
     }
