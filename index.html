@@ -409,9 +409,11 @@
   #screen-settings .state { font-size: 15px; }
   #screen-settings .state.on { color: var(--ink); }
   #screen-settings .state.off { color: var(--sub); }
-  #screen-settings .clear-row { display: flex; align-items: center; padding: 9px 0 4px; cursor: pointer; background: none; border: none; font-family: inherit; width: 100%; text-align: left; }
+  #screen-settings .clear-row { display: flex; align-items: center; padding: 9px 0 4px; min-height: 44px; cursor: pointer; background: none; border: none; font-family: inherit; width: 100%; text-align: left; -webkit-tap-highlight-color: transparent; }
   #screen-settings .clear-row .k { font-size: 15px; color: var(--accent); }
   #screen-settings .clear-row:hover .k { opacity: 0.78; }
+  #screen-settings .danger-row .k { color: #B84040; }
+  #screen-settings .danger-row:hover .k { opacity: 0.78; }
   #screen-settings .st-cycle-row,
   #screen-settings .st-toggle-row { background: none; border: none; font-family: var(--font-sans); width: 100%; cursor: pointer; text-align: left; padding-top: 10px; padding-bottom: 10px; min-height: 44px; align-items: center; border-radius: 8px; -webkit-tap-highlight-color: transparent; transition: background 150ms ease; }
   #screen-settings .st-cycle-row:hover, #screen-settings .st-toggle-row:hover { background: rgba(176,125,79,0.07); }
@@ -720,8 +722,12 @@
           <div class="card-title">Data</div>
           <div class="row"><span class="k">Storage</span><span class="v">This device only</span></div>
           <div class="row"><span class="k">History logs</span><span class="v" id="stCount">0</span></div>
-          <div class="row"><span class="k">Export</span><span class="v muted" id="stExport">Coming later</span></div>
-          <button class="clear-row" id="stClear"><span class="k">Clear history</span></button>
+          <button class="clear-row" id="stExportJSON"><span class="k">JSONを書き出す</span></button>
+          <button class="clear-row" id="stExportCSV"><span class="k">CSVを書き出す</span></button>
+          <button class="clear-row" id="stClear"><span class="k">履歴をすべて削除</span></button>
+          <button class="clear-row" id="stResetBrew"><span class="k">現在の抽出をリセット</span></button>
+          <button class="clear-row" id="stResetSettings"><span class="k">設定を初期値に戻す</span></button>
+          <button class="clear-row danger-row" id="stClearAll"><span class="k">すべてのデータを削除</span></button>
           <div class="card-note">記録はこの端末のブラウザ内に保存されます</div>
         </section>
         <section class="card">
@@ -1791,6 +1797,65 @@
   $('stSoundRow').addEventListener('click', function () { stToggleAssist('soundCues', 'stSound'); });
   $('stHapticRow').addEventListener('click', function () { stToggleAssist('hapticCues', 'stHaptic'); });
 
+  /* ============ Data helpers ============ */
+  function exportDateStamp() {
+    var d = new Date(), pad = function (n) { return String(n).padStart(2, '0'); };
+    return d.getFullYear() + '' + pad(d.getMonth() + 1) + '' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes());
+  }
+  function downloadTextFile(filename, text, mimeType) {
+    var blob = new Blob([text], { type: mimeType || 'text/plain;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 0);
+  }
+  function csvCell(v) {
+    if (v == null) return '';
+    var s = Array.isArray(v) ? v.join(' / ') : String(v);
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+
+  /* ============ Export JSON ============ */
+  $('stExportJSON').addEventListener('click', function () {
+    try {
+      var payload = {
+        app: 'Pourō-Claude', exportType: 'full',
+        exportedAt: new Date().toISOString(),
+        schemaVersion: 1, cacheVersion: 'pouro-v1.16.0',
+        data: {
+          settings: readSettings(),
+          history: readHistory(),
+          draft: readJSON(K_DRAFT, null),
+          activeBrew: readJSON(K_ACTIVE, null)
+        }
+      };
+      downloadTextFile('pouro-claude-export-' + exportDateStamp() + '.json', JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
+      stShowHint('JSONを書き出しました');
+    } catch (e) { stShowHint('書き出しできませんでした'); }
+  });
+
+  /* ============ Export CSV ============ */
+  function historyCsvValue(e, c) {
+    var eq = (e.equipment && typeof e.equipment === 'object') ? e.equipment : {};
+    if (c === 'beanGrind') return eq.beanGrind;
+    if (c === 'dripper') return eq.dripper;
+    if (c === 'temperature') return eq.temperature;
+    return e[c];
+  }
+  $('stExportCSV').addEventListener('click', function () {
+    try {
+      var cols = ['id','createdAt','method','methodId','dose','ratio','water','hotWater','ice','pours','drawdown','flavor','flavorId','strength','strengthId','rating','tags','beanGrind','dripper','temperature','note'];
+      var rows = [cols.map(csvCell).join(',')];
+      readHistory().forEach(function (e) {
+        rows.push(cols.map(function (c) { return csvCell(historyCsvValue(e, c)); }).join(','));
+      });
+      downloadTextFile('pouro-claude-history-' + exportDateStamp() + '.csv', rows.join('\r\n'), 'text/csv;charset=utf-8');
+      stShowHint('CSVを書き出しました');
+    } catch (e) { stShowHint('書き出しできませんでした'); }
+  });
+
+  /* ============ Clear history ============ */
   $('stClear').addEventListener('click', function () {
     if (!window.confirm('履歴をすべて削除します。この操作は元に戻せません。')) return;
     var ok = false;
@@ -1798,7 +1863,39 @@
     $('stCount').textContent = readHistory().length;
     stShowHint(ok ? '履歴を削除しました' : '履歴を削除できませんでした');
   });
-  $('stExport').addEventListener('click', function () { console.log('export coming later'); });
+
+  /* ============ Reset current brew ============ */
+  $('stResetBrew').addEventListener('click', function () {
+    if (!window.confirm('現在の抽出設定と進行中の抽出をリセットします。履歴とSettingsは残ります。')) return;
+    var ok = false;
+    try { localStorage.removeItem(K_DRAFT); localStorage.removeItem(K_ACTIVE); ok = true; } catch (e) { ok = false; }
+    stShowHint(ok ? '現在の抽出をリセットしました' : 'リセットできませんでした');
+  });
+
+  /* ============ Reset settings ============ */
+  $('stResetSettings').addEventListener('click', function () {
+    if (!window.confirm('設定を初期値に戻します。履歴と抽出データは残ります。')) return;
+    var ok = false;
+    try { writeJSON(K_SETTINGS, JSON.parse(JSON.stringify(DEFAULT_SETTINGS))); ok = true; } catch (e) { ok = false; }
+    if (ok) RENDERERS.settings();
+    stShowHint(ok ? '設定を初期値に戻しました' : 'リセットできませんでした');
+  });
+
+  /* ============ Clear all data ============ */
+  $('stClearAll').addEventListener('click', function () {
+    if (!window.confirm('すべての履歴、設定、進行中の抽出を削除します。この操作は元に戻せません。')) return;
+    if (!window.confirm('本当にすべて削除しますか？')) return;
+    var ok = false;
+    try {
+      localStorage.removeItem(K_HISTORY);
+      localStorage.removeItem(K_DRAFT);
+      localStorage.removeItem(K_ACTIVE);
+      localStorage.removeItem(K_SETTINGS);
+      ok = true;
+    } catch (e) { ok = false; }
+    if (ok) RENDERERS.settings();
+    stShowHint(ok ? 'すべてのデータを削除しました' : '削除できませんでした');
+  });
 
   /* ===================================================================
      TAB BAR
