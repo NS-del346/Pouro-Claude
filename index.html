@@ -412,6 +412,13 @@
   #screen-settings .clear-row { display: flex; align-items: center; padding: 9px 0 4px; cursor: pointer; background: none; border: none; font-family: inherit; width: 100%; text-align: left; }
   #screen-settings .clear-row .k { font-size: 15px; color: var(--accent); }
   #screen-settings .clear-row:hover .k { opacity: 0.78; }
+  #screen-settings .st-cycle-row,
+  #screen-settings .st-toggle-row { background: none; border: none; font-family: var(--font-sans); width: 100%; cursor: pointer; text-align: left; padding-top: 10px; padding-bottom: 10px; min-height: 44px; align-items: center; border-radius: 8px; -webkit-tap-highlight-color: transparent; transition: background 150ms ease; }
+  #screen-settings .st-cycle-row:hover, #screen-settings .st-toggle-row:hover { background: rgba(176,125,79,0.07); }
+  #screen-settings .st-cycle-row:active, #screen-settings .st-toggle-row:active { background: rgba(176,125,79,0.14); }
+  #screen-settings .st-cycle-val { font-size: 15px; color: var(--accent); font-variant-numeric: tabular-nums; }
+  #screen-settings .settings-hint { font-size: 13px; color: var(--sub); text-align: center; padding: 8px 20px 22px; opacity: 0; transition: opacity 350ms ease; min-height: 40px; }
+  #screen-settings .settings-hint.is-visible { opacity: 1; }
   #screen-settings .about-logo { font-family: var(--font-serif); font-size: 38px; font-weight: 400; color: var(--ink); line-height: 1; margin: 4px 0 9px; }
   #screen-settings .about-tag { font-family: var(--font-serif); font-style: italic; font-size: 15px; color: var(--ink); opacity: 0.85; margin-bottom: 12px; }
   #screen-settings .about-line { font-size: 13.5px; color: var(--sub); line-height: 1.65; }
@@ -679,22 +686,35 @@
         <header><h1 class="page-title">Settings</h1><p class="page-sub">抽出の基準を、静かに整える</p></header>
         <section class="card">
           <div class="card-title">Default brew</div>
-          <div class="row"><span class="k">Method</span><span class="v" id="stMethod">4:6 Method</span></div>
-          <div class="row-pair">
-            <div class="cell"><span class="k">Coffee</span><span class="v" id="stDose">18g</span></div>
-            <div class="cell"><span class="k">Ratio</span><span class="v" id="stRatio">1:15</span></div>
-          </div>
-          <div class="row-pair">
-            <div class="cell"><span class="k">Flavor</span><span class="v" id="stFlavor">ベーシック</span></div>
-            <div class="cell"><span class="k">Strength</span><span class="v" id="stStrength">標準</span></div>
-          </div>
-          <div class="card-note">新しい抽出を始めるときの初期値です</div>
+          <button class="row st-cycle-row" id="stMethodRow" aria-label="Methodを変更">
+            <span class="k">Method</span><span class="st-cycle-val" id="stMethod">4:6 Method</span>
+          </button>
+          <button class="row st-cycle-row" id="stDoseRow" aria-label="Coffeeを変更">
+            <span class="k">Coffee</span><span class="st-cycle-val" id="stDose">18g</span>
+          </button>
+          <button class="row st-cycle-row" id="stRatioRow" aria-label="Ratioを変更">
+            <span class="k">Ratio</span><span class="st-cycle-val" id="stRatio">1:15</span>
+          </button>
+          <button class="row st-cycle-row" id="stFlavorRow" aria-label="Flavorを変更">
+            <span class="k">Flavor</span><span class="st-cycle-val" id="stFlavor">ベーシック</span>
+          </button>
+          <button class="row st-cycle-row" id="stStrengthRow" aria-label="Strengthを変更">
+            <span class="k">Strength</span><span class="st-cycle-val" id="stStrength">標準</span>
+          </button>
+          <div class="card-note">新しい抽出を始めるときの初期値です。タップで変更できます。<br>既存の抽出設定が残っている場合は、Recipe Setupの値が優先されます。</div>
         </section>
         <section class="card">
           <div class="card-title">Brew assist</div>
-          <div class="row"><span class="k">Keep screen awake</span><span class="state" id="stScreen">On</span></div>
-          <div class="row"><span class="k">Sound cues</span><span class="state" id="stSound">Off</span></div>
-          <div class="row"><span class="k">Haptic cues</span><span class="state" id="stHaptic">Off</span></div>
+          <button class="row st-toggle-row" id="stScreenRow" aria-label="Keep screen awakeを切り替え">
+            <span class="k">Keep screen awake</span><span class="state" id="stScreen">On</span>
+          </button>
+          <button class="row st-toggle-row" id="stSoundRow" aria-label="Sound cuesを切り替え">
+            <span class="k">Sound cues</span><span class="state" id="stSound">Off</span>
+          </button>
+          <button class="row st-toggle-row" id="stHapticRow" aria-label="Haptic cuesを切り替え">
+            <span class="k">Haptic cues</span><span class="state" id="stHaptic">Off</span>
+          </button>
+          <div class="card-note">端末やブラウザにより一部の補助機能は制限されます。</div>
         </section>
         <section class="card">
           <div class="card-title">Data</div>
@@ -712,6 +732,7 @@
           <div class="about-line">Static PWA</div>
           <div class="about-line ja">原典に忠実な、静かな抽出補助具。</div>
         </section>
+        <div id="stHint" class="settings-hint"></div>
       </div>
     </section>
 
@@ -1712,6 +1733,12 @@
   /* ===================================================================
      7) SETTINGS
      =================================================================== */
+  var ST_METHODS   = ['4:6 Method', 'Hybrid', 'THE NEO BREW', 'Ice Brew'];
+  var ST_DOSES     = [18, 24, 30, 36, 48];
+  var ST_RATIOS    = [14, 15, 16];
+  var ST_FLAVORS   = FLAVORS.map(function (f) { return f.label; });
+  var ST_STRENGTHS = STRENGTHS.map(function (s) { return s.label; });
+
   RENDERERS.settings = function () {
     var s = readSettings(), db = s.defaultBrew, ba = s.brewAssist;
     $('stMethod').textContent = db.method;
@@ -1728,11 +1755,48 @@
     var el = $(id); el.textContent = on ? 'On' : 'Off';
     el.classList.toggle('on', !!on); el.classList.toggle('off', !on);
   }
+  function stSaveSettings(patch) {
+    var s = readSettings();
+    if (patch.defaultBrew) s.defaultBrew = Object.assign({}, s.defaultBrew, patch.defaultBrew);
+    if (patch.brewAssist) s.brewAssist = Object.assign({}, s.brewAssist, patch.brewAssist);
+    writeJSON(K_SETTINGS, s);
+    return s;
+  }
+  function stShowHint(msg) {
+    var el = $('stHint'); el.textContent = msg; el.classList.add('is-visible');
+    clearTimeout(el._t); el._t = setTimeout(function () { el.classList.remove('is-visible'); }, 3000);
+  }
+  function stCycleBrewDefault(field, list, displayId, fmt) {
+    var cur = readSettings().defaultBrew[field];
+    var idx = list.indexOf(cur); if (idx < 0) idx = 0;
+    var next = list[(idx + 1) % list.length];
+    var patch = {}; patch[field] = next;
+    stSaveSettings({ defaultBrew: patch });
+    $(displayId).textContent = fmt ? fmt(next) : next;
+    stShowHint('設定を保存しました');
+  }
+  $('stMethodRow').addEventListener('click', function () { stCycleBrewDefault('method', ST_METHODS, 'stMethod', null); });
+  $('stDoseRow').addEventListener('click', function () { stCycleBrewDefault('dose', ST_DOSES, 'stDose', function (v) { return v + 'g'; }); });
+  $('stRatioRow').addEventListener('click', function () { stCycleBrewDefault('ratio', ST_RATIOS, 'stRatio', function (v) { return '1:' + v; }); });
+  $('stFlavorRow').addEventListener('click', function () { stCycleBrewDefault('flavor', ST_FLAVORS, 'stFlavor', null); });
+  $('stStrengthRow').addEventListener('click', function () { stCycleBrewDefault('strength', ST_STRENGTHS, 'stStrength', null); });
+
+  function stToggleAssist(key, stateId) {
+    var s = readSettings(); var patch = {}; patch[key] = !s.brewAssist[key];
+    var ns = stSaveSettings({ brewAssist: patch });
+    stSetState(stateId, ns.brewAssist[key]);
+    stShowHint('設定を保存しました');
+  }
+  $('stScreenRow').addEventListener('click', function () { stToggleAssist('keepScreenAwake', 'stScreen'); });
+  $('stSoundRow').addEventListener('click', function () { stToggleAssist('soundCues', 'stSound'); });
+  $('stHapticRow').addEventListener('click', function () { stToggleAssist('hapticCues', 'stHaptic'); });
+
   $('stClear').addEventListener('click', function () {
-    if (!window.confirm('履歴をすべて削除しますか？')) return;
-    try { localStorage.removeItem(K_HISTORY); } catch (e) { }
+    if (!window.confirm('履歴をすべて削除します。この操作は元に戻せません。')) return;
+    var ok = false;
+    try { localStorage.removeItem(K_HISTORY); ok = true; } catch (e) { ok = false; }
     $('stCount').textContent = readHistory().length;
-    console.log('history cleared');
+    stShowHint(ok ? '履歴を削除しました' : '履歴を削除できませんでした');
   });
   $('stExport').addEventListener('click', function () { console.log('export coming later'); });
 
