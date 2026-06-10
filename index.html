@@ -1836,12 +1836,19 @@
   });
 
   /* ============ Export CSV ============ */
+  function historyCsvValue(e, c) {
+    var eq = (e.equipment && typeof e.equipment === 'object') ? e.equipment : {};
+    if (c === 'beanGrind') return eq.beanGrind;
+    if (c === 'dripper') return eq.dripper;
+    if (c === 'temperature') return eq.temperature;
+    return e[c];
+  }
   $('stExportCSV').addEventListener('click', function () {
     try {
       var cols = ['id','createdAt','method','methodId','dose','ratio','water','hotWater','ice','pours','drawdown','flavor','flavorId','strength','strengthId','rating','tags','beanGrind','dripper','temperature','note'];
       var rows = [cols.map(csvCell).join(',')];
       readHistory().forEach(function (e) {
-        rows.push(cols.map(function (c) { return csvCell(e[c]); }).join(','));
+        rows.push(cols.map(function (c) { return csvCell(historyCsvValue(e, c)); }).join(','));
       });
       downloadTextFile('pouro-claude-history-' + exportDateStamp() + '.csv', rows.join('\r\n'), 'text/csv;charset=utf-8');
       stShowHint('CSVを書き出しました');
